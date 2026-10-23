@@ -149,10 +149,7 @@
     <p>गुरुजी को चलाने के लिए एक API key चाहिए। Key सिर्फ आपके browser में (localStorage) रहती है — कहीं भेजी नहीं जाती, सीधे प्रदाता को जाती है।</p>
 
     <label for="provider">प्रदाता (Provider)</label>
-    <select id="provider">
-      <option value="sarvam">Sarvam AI (भारत) — डिफ़ॉल्ट</option>
-      <option value="gemini">Google Gemini</option>
-    </select>
+    <select id="provider"></select>
 
     <label for="key">API Key</label>
     <input id="key" type="password" placeholder="" autocomplete="off">
@@ -229,12 +226,14 @@ const PERSONA = `तुम "गुरुजी" हो — पंडित श�
 /* ---------------- providers ---------------- */
 const PROVIDERS = {
   sarvam: {
-    label:'Sarvam AI',
-    pill:'Sarvam',
+    label:'Sarvam AI (भारत) — डिफ़ॉल्ट', pill:'Sarvam',
     keyHint:'sk_… (Sarvam dashboard से)',
-    keyUrl:'https://dashboard.sarvam.ai',
-    keyUrlText:'dashboard.sarvam.ai',
+    keyUrl:'https://dashboard.sarvam.ai', keyUrlText:'dashboard.sarvam.ai',
     keyNote:'Sarvam AI की key <b>dashboard.sarvam.ai</b> → "API Keys" section में जाकर बनाइए (sk_… से शुरू होती है)। Key एक ही बार दिखती है, तुरंत save कर लीजिए।',
+    authHeader:'api-subscription-key', authPrefix:'',
+    url:(m)=>'https://api.sarvam.ai/'+epOf('sarvam',m)+'/chat/completions',
+    listUrl:'https://api.sarvam.ai/v2/models',
+    pick:(j)=>(j.data||[]).map(x=>x.id),
     models:[
       {id:'sarvam-105b', ep:'v1', label:'sarvam-105b (flagship, अनुशंसित)'},
       {id:'sarvam-105b-conversations', ep:'v1', label:'sarvam-105b-conversations (बातचीत)'},
@@ -243,13 +242,27 @@ const PROVIDERS = {
       {id:'deepseekv4.1-flash', ep:'v2', label:'deepseekv4.1-flash (reasoning, तेज़)'}
     ]
   },
+  nvidia: {
+    label:'NVIDIA NIM (मुफ़्त)', pill:'NVIDIA',
+    keyHint:'nvapi-… (build.nvidia.com से)',
+    keyUrl:'https://build.nvidia.com/settings/api-keys', keyUrlText:'build.nvidia.com/settings/api-keys',
+    keyNote:'NVIDIA की key <b>build.nvidia.com</b> पर sign-in करके (मुफ़्त, credit card नहीं) → Settings → API Keys से बनाइए।',
+    authHeader:'Authorization', authPrefix:'Bearer ',
+    url:(m)=>'https://integrate.api.nvidia.com/v1/chat/completions',
+    listUrl:'https://integrate.api.nvidia.com/v1/models',
+    pick:(j)=>(j.data||[]).map(x=>x.id),
+    models:[
+      {id:'openai/gpt-oss-120b', label:'openai/gpt-oss-120b'},
+      {id:'nvidia/llama-3.3-nemotron-super-49b-v1', label:'nvidia/llama-3.3-nemotron-super-49b-v1'},
+      {id:'deepseek-ai/deepseek-v4.1-flash', label:'deepseek-ai/deepseek-v4.1-flash'}
+    ]
+  },
   gemini: {
-    label:'Google Gemini',
-    pill:'Gemini',
+    label:'Google Gemini', pill:'Gemini',
     keyHint:'AIza… (AI Studio से)',
-    keyUrl:'https://aistudio.google.com/app/apikey',
-    keyUrlText:'aistudio.google.com/app/apikey',
-    keyNote:'Gemini की key <b>aistudio.google.com/app/apikey</b> → "Create API key" से बनाइए। ध्यान दीजिए: <b>Gemini app का subscription और API अलग हैं</b> — subscription से key नहीं मिलती।',
+    keyUrl:'https://aistudio.google.com/app/apikey', keyUrlText:'aistudio.google.com/app/apikey',
+    keyNote:'Gemini की key <b>aistudio.google.com/app/apikey</b> → "Create API key" से बनाइए (मुफ़्त tier है)। ध्यान दीजिए: <b>Gemini app का subscription और API अलग हैं</b> — subscription से key नहीं मिलती।',
+    authHeader:'query', authPrefix:'',
     models:[
       {id:'gemini-3.8-flash', ep:'gem', label:'gemini-3.8-flash (नवीनतम)'},
       {id:'gemini-3.6-flash', ep:'gem', label:'gemini-3.6-flash'},
@@ -322,7 +335,7 @@ const key = () => state.keys[state.provider];
 const model = () => state.models[state.provider];
 function saveHist(){ localStorage.setItem('jg_hist', JSON.stringify(state.hist)); }
 function hist(){ if(!state.hist[state.person]) state.hist[state.person]=[]; return state.hist[state.person]; }
-function epOf(prov, id){ const p=PROVIDERS[prov]; const m=p.models.find(x=>x.id===id); return m?m.ep:(prov==='sarvam'?'v1':'gem'); }
+function epOf(prov, id){ const p=PROVIDERS[prov]; const m=(p.models||[]).find(x=>x.id===id); return m?m.ep:(prov==='sarvam'?'v1':'openai'); }
 
 /* ---------------- render ---------------- */
 function bubble(role, text){
@@ -341,20 +354,21 @@ function renderAll(){
   hist().forEach(m=>bubble(m.role==='user'?'user':'guru', m.text));
 }
 
-/* ---------------- API: Sarvam ---------------- */
-async function callSarvam(contents, onDelta){
-  const id = model(), ep = epOf('sarvam', id);
-  const url = 'https://api.sarvam.ai/'+ep+'/chat/completions';
+/* ---------------- API: OpenAI-compatible (Sarvam, NVIDIA) ---------------- */
+async function callOpenAI(prov, contents, onDelta){
+  const P = PROVIDERS[prov];
+  const id = state.models[prov];
+  const url = P.url(id);
   const msgs = [{role:'system', content: systemPrompt()}]
     .concat(contents.map(m=>({role: m.role==='user'?'user':'assistant', content: m.text})));
   const body = { model:id, messages:msgs, temperature:0.75, max_tokens:3200, stream:true };
-  if(ep==='v2' && (id==='glm5.3'||id==='deepseekv4.1-flash')) body.reasoning_effort='low';
-  const res = await fetch(url,{method:'POST',
-    headers:{'Content-Type':'application/json','api-subscription-key':key()},
-    body:JSON.stringify(body)});
+  if(prov==='sarvam' && epOf('sarvam',id)==='v2' && (id==='glm5.3'||id==='deepseekv4.1-flash')) body.reasoning_effort='low';
+  const headers = {'Content-Type':'application/json'};
+  headers[P.authHeader] = P.authPrefix + key();
+  const res = await fetch(url,{method:'POST', headers, body:JSON.stringify(body)});
   if(!res.ok){
-    let msg='Sarvam API error '+res.status;
-    try{ const j=await res.json(); if(j.error&&j.error.message) msg+=' — '+j.error.message; }catch(e){}
+    let msg='API error '+res.status;
+    try{ const j=await res.json(); const m=(j.error&&(j.error.message||j.error.code))||j.detail||j.message; if(m) msg+=' — '+(typeof m==='string'?m:JSON.stringify(m)); }catch(e){}
     throw new Error(msg);
   }
   const reader=res.body.getReader(), dec=new TextDecoder(); let buf='', full='';
@@ -410,23 +424,25 @@ async function callGemini(contents, onDelta){
   if(!full) throw new Error('खाली जवाब आया — model name या quota जाँच लीजिए।');
   return full;
 }
-function callAI(contents,onDelta){ return state.provider==='sarvam' ? callSarvam(contents,onDelta) : callGemini(contents,onDelta); }
+function callAI(contents,onDelta){ return state.provider==='gemini' ? callGemini(contents,onDelta) : callOpenAI(state.provider,contents,onDelta); }
 
 /* ---------------- model list refresh ---------------- */
 async function refreshModels(){
   const st=$('#modelStatus'); st.className='status'; st.textContent='लाया जा रहा है…';
   try{
+    const P=PROVIDERS[state.provider];
     let ids=[];
-    if(state.provider==='sarvam'){
-      const r=await fetch('https://api.sarvam.ai/v2/models',{headers:{'api-subscription-key':key()}});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      const j=await r.json(); ids=(j.data||[]).map(m=>m.id);
-    }else{
+    if(state.provider==='gemini'){
       const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key()));
       if(!r.ok) throw new Error('HTTP '+r.status);
       const j=await r.json();
       ids=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
             .map(m=>m.name.replace(/^models\//,''));
+    }else{
+      const headers={}; headers[P.authHeader]=P.authPrefix+key();
+      const r=await fetch(P.listUrl,{headers});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      ids=P.pick(await r.json());
     }
     if(!ids.length) throw new Error('कोई model नहीं मिला');
     const sel=$('#model'); const keep=sel.value;
@@ -460,6 +476,7 @@ async function send(){
     if(/403|invalid_api_key/.test(m)) hint='आपकी API key ग़लत है या ख़त्म हो गई — ⚙ सेटिंग में नई key डालिए।';
     else if(/404|not found|no longer available/i.test(m)) hint='यह model अब उपलब्ध नहीं है — ⚙ सेटिंग में <b>"🔄 Models refresh करें"</b> दबाइए और दूसरा model चुनिए।';
     else if(/quota|429|rate/i.test(m)) hint='थोड़ी देर रुककर फिर कोशिश कीजिए (quota/rate limit)।';
+    else if(/failed to fetch|networkerror|load failed/i.test(m)) hint='यह provider आपके browser से सीधे call की इजाज़त नहीं देता (CORS)। ⚙ सेटिंग में <b>Sarvam</b> या <b>Google Gemini</b> चुन लीजिए — वे दोनों browser से चलते हैं।';
     else hint='⚙ सेटिंग में key और model जाँच लीजिए।';
     holder.querySelector('.bubble').innerHTML='<b>क्षमा कीजिए, कुछ अड़चन आ गई।</b><br><span style="font-size:13px">'+
       esc(m)+'</span><br><br><span style="font-size:13px">'+hint+'</span>';
@@ -520,6 +537,11 @@ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#q').value=c.te
 /* ---------------- init ---------------- */
 $('#personSel').value=state.person;
 $('#todayLabel').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+(function fillProviders(){
+  const sel=$('#provider'); sel.innerHTML='';
+  Object.entries(PROVIDERS).forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v.label; sel.appendChild(o); });
+  sel.value=state.provider;
+})();
 $('#provPill').textContent=PROVIDERS[state.provider].pill;
 renderAll();
 if(!key()) setTimeout(openModal,400);
