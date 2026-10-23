@@ -150,6 +150,7 @@
 
     <label for="provider">प्रदाता (Provider)</label>
     <select id="provider"></select>
+    <div class="status" id="keysStatus"></div>
 
     <label for="key">API Key</label>
     <input id="key" type="password" placeholder="" autocomplete="off">
@@ -325,14 +326,18 @@ function fmt(txt){
 /* ---------------- state ---------------- */
 let state = {
   provider: localStorage.getItem('jg_provider')||'sarvam',
-  keys: { sarvam: localStorage.getItem('jg_key_sarvam')||'', gemini: localStorage.getItem('jg_key_gemini')||'' },
-  models: { sarvam: localStorage.getItem('jg_model_sarvam')||'sarvam-105b',
-            gemini: localStorage.getItem('jg_model_gemini')||'gemini-3.8-flash' },
+  keys: {}, models: {},
   person: localStorage.getItem('jg_person')||'Dhirendra Bagri',
   hist: JSON.parse(localStorage.getItem('jg_hist')||'{}')
 };
+Object.keys(PROVIDERS).forEach(function(p){
+  state.keys[p]  = localStorage.getItem('jg_key_'+p)  || '';
+  state.models[p]= localStorage.getItem('jg_model_'+p)|| ((PROVIDERS[p].models&&PROVIDERS[p].models[0]&&PROVIDERS[p].models[0].id)||'');
+});
 const key = () => state.keys[state.provider];
 const model = () => state.models[state.provider];
+const anyKey = () => Object.keys(PROVIDERS).some(p => (state.keys[p]||'').trim().length>0);
+const provWithKeys = () => Object.keys(PROVIDERS).filter(p => (state.keys[p]||'').trim());
 function saveHist(){ localStorage.setItem('jg_hist', JSON.stringify(state.hist)); }
 function hist(){ if(!state.hist[state.person]) state.hist[state.person]=[]; return state.hist[state.person]; }
 function epOf(prov, id){ const p=PROVIDERS[prov]; const m=(p.models||[]).find(x=>x.id===id); return m?m.ep:(prov==='sarvam'?'v1':'openai'); }
@@ -424,22 +429,43 @@ async function callGemini(contents, onDelta){
   if(!full) throw new Error('खाली जवाब आया — model name या quota जाँच लीजिए।');
   return full;
 }
-function callAI(contents,onDelta){ return state.provider==='gemini' ? callGemini(contents,onDelta) : callOpenAI(state.provider,contents,onDelta); }
+function callOne(prov, contents, onDelta){
+  return prov==='gemini' ? callGemini(contents,onDelta) : callOpenAI(prov,contents,onDelta);
+}
+/* Try the active provider; if it errors or runs out, move to the next one that has a key. */
+async function callWithFailover(contents, onDelta, onSwitch){
+  const have = provWithKeys();
+  if(!have.length) throw new Error('कोई API key नहीं मिली — ⚙ सेटिंग में key डालिए।');
+  const order = have.indexOf(state.provider)>=0
+      ? [state.provider].concat(have.filter(p=>p!==state.provider))
+      : have.slice();
+  let lastErr=null;
+  for(let i=0;i<order.length;i++){
+    const prov=order[i];
+    if(i>0 && onSwitch) onSwitch(order[i-1], prov);
+    try{
+      const text = await callOne(prov, contents, onDelta);
+      return { text:text, provider:prov };
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr || new Error('सभी providers से जवाब नहीं आया।');
+}
 
 /* ---------------- model list refresh ---------------- */
 async function refreshModels(){
   const st=$('#modelStatus'); st.className='status'; st.textContent='लाया जा रहा है…';
+  const mprov=$('#provider').value, mkey=$('#key').value.trim();
   try{
-    const P=PROVIDERS[state.provider];
+    const P=PROVIDERS[mprov];
     let ids=[];
-    if(state.provider==='gemini'){
-      const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key()));
+    if(mprov==='gemini'){
+      const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(mkey));
       if(!r.ok) throw new Error('HTTP '+r.status);
       const j=await r.json();
       ids=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
             .map(m=>m.name.replace(/^models\//,''));
     }else{
-      const headers={}; headers[P.authHeader]=P.authPrefix+key();
+      const headers={}; headers[P.authHeader]=P.authPrefix+mkey;
       const r=await fetch(P.listUrl,{headers});
       if(!r.ok) throw new Error('HTTP '+r.status);
       ids=P.pick(await r.json());
@@ -459,16 +485,23 @@ async function refreshModels(){
 let busy=false;
 async function send(){
   const q=$('#q').value.trim(); if(!q||busy)return;
-  if(!key()){ openModal(); return; }
+  if(!anyKey()){ openModal(); return; }
   busy=true; $('#send').disabled=true; $('#q').value=''; autoGrow();
   hist().push({role:'user',text:q}); bubble('user',q); saveHist();
   const holder=bubble('guru','');
-  holder.querySelector('.bubble').innerHTML='<span class="thinking">गुरुजी विचार कर रहे हैं…</span>';
+  const bb=holder.querySelector('.bubble');
+  bb.innerHTML='<span class="thinking">गुरुजी विचार कर रहे हैं…</span>';
   try{
-    const full = await callAI(hist(), txt=>{
-      holder.querySelector('.bubble').innerHTML=fmt(txt);
-      $('#log').scrollTop=$('#log').scrollHeight;
-    });
+    let switched=null;
+    const res = await callWithFailover(hist(),
+      function(txt){ bb.innerHTML=fmt(txt); $('#log').scrollTop=$('#log').scrollHeight; },
+      function(from,to){
+        switched={from:from,to:to};
+        bb.innerHTML='<span class="thinking">'+PROVIDERS[from].pill+' से जवाब नहीं आया — '+PROVIDERS[to].pill+' से कोशिश कर रहे हैं…</span>';
+      });
+    let full=res.text;
+    if(switched) full='*('+PROVIDERS[switched.from].pill+' से जवाब नहीं आया, इसलिए उत्तर '+PROVIDERS[switched.to].pill+' से आया)*\n\n'+full;
+    bb.innerHTML=fmt(full);
     hist().push({role:'model',text:full}); saveHist();
   }catch(err){
     let hint='';
@@ -486,12 +519,13 @@ async function send(){
 /* ---------------- UI wiring ---------------- */
 function autoGrow(){ const q=$('#q'); q.style.height='auto'; q.style.height=Math.min(q.scrollHeight,170)+'px'; }
 function fillModels(){
+  const prov=$('#provider').value||state.provider;
   const sel=$('#model'); sel.innerHTML='';
-  PROVIDERS[state.provider].models.forEach(m=>{
+  (PROVIDERS[prov].models||[]).forEach(m=>{
     const o=document.createElement('option'); o.value=m.id; o.textContent=m.label||m.id; sel.appendChild(o);
   });
-  const want=state.models[state.provider];
-  if([...sel.options].some(o=>o.value===want)) sel.value=want; else sel.value=sel.options[0].value;
+  const want=state.models[prov];
+  if([...sel.options].some(o=>o.value===want)) sel.value=want; else if(sel.options[0]) sel.value=sel.options[0].value;
 }
 function syncKeyHelp(){
   const p=PROVIDERS[state.provider];
@@ -500,11 +534,22 @@ function syncKeyHelp(){
     ' <a href="'+p.keyUrl+'" target="_blank">'+p.keyUrlText+'</a>';
   $('#provPill').textContent=p.pill;
 }
+function syncKeysStatus(){
+  const el=$('#keysStatus'); if(!el) return;
+  const have=provWithKeys();
+  if(have.length>=2){ el.className='status ok';
+    el.textContent='✓ Automatic switch तैयार — '+have.map(p=>PROVIDERS[p].pill).join(' → ')+' (एक fail हो तो अगला)।'; }
+  else if(have.length===1){ el.className='status';
+    el.textContent='अभी saved key: '+PROVIDERS[have[0]].pill+'। Automatic switch के लिए कम से कम दो providers की key डालिए।'; }
+  else { el.className='status'; el.textContent='अभी कोई key saved नहीं है।'; }
+}
+let modalProv='sarvam';
 function openModal(){
+  modalProv=state.provider;
   $('#modal').classList.add('open');
   $('#provider').value=state.provider;
   $('#key').value=key();
-  fillModels(); syncKeyHelp(); $('#modelStatus').textContent='';
+  fillModels(); syncKeyHelp(); syncKeysStatus(); $('#modelStatus').textContent='';
 }
 function closeModal(){ $('#modal').classList.remove('open'); }
 
@@ -514,10 +559,15 @@ $('#q').addEventListener('input',autoGrow);
 $('#setBtn').onclick=openModal;
 $('#closeSet').onclick=closeModal;
 $('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
-$('#provider').onchange=()=>{ $('#key').value=state.keys[$('#provider').value]||''; fillModels(); syncKeyHelp(); };
+$('#provider').onchange=()=>{
+  state.keys[modalProv]=$('#key').value.trim();
+  localStorage.setItem('jg_key_'+modalProv, state.keys[modalProv]);
+  modalProv=$('#provider').value;
+  $('#key').value=state.keys[modalProv]||'';
+  fillModels(); syncKeyHelp(); syncKeysStatus(); $('#modelStatus').textContent='';
+};
 $('#refreshModels').onclick=async()=>{
-  state.provider=$('#provider').value;
-  state.keys[state.provider]=$('#key').value.trim();
+  state.keys[$('#provider').value]=$('#key').value.trim();
   await refreshModels();
 };
 $('#saveSet').onclick=()=>{
@@ -527,8 +577,8 @@ $('#saveSet').onclick=()=>{
   localStorage.setItem('jg_provider',state.provider);
   localStorage.setItem('jg_key_'+state.provider,state.keys[state.provider]);
   localStorage.setItem('jg_model_'+state.provider,state.models[state.provider]);
-  syncKeyHelp(); closeModal();
-  if(!key()) openModal();
+  syncKeyHelp(); syncKeysStatus(); closeModal();
+  if(!anyKey()) openModal();
 };
 $('#personSel').onchange=()=>{ state.person=$('#personSel').value; localStorage.setItem('jg_person',state.person); renderAll(); };
 $('#clearBtn').onclick=()=>{ if(confirm('इस कुंडली की बातचीत मिटा दें?')){ state.hist[state.person]=[]; saveHist(); renderAll(); } };
@@ -544,7 +594,7 @@ $('#todayLabel').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric
 })();
 $('#provPill').textContent=PROVIDERS[state.provider].pill;
 renderAll();
-if(!key()) setTimeout(openModal,400);
+if(!anyKey()) setTimeout(openModal,400);
 </script>
 </body>
 </html>
