@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>गुरुजी — आपके ज्योतिष मार्गदर्शक</title>
+<style>
+  :root{
+    --maroon:#7a1f1f; --maroon2:#5e1414; --gold:#b07a1a; --cream:#fdf8ef;
+    --paper:#fbf5e9; --ink:#231f1a; --soft:#6b5f4d; --line:#e0d2b4; --saffron:#e08a1e;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Nirmala UI","Noto Sans Devanagari",Georgia,"Times New Roman",serif;
+    display:flex; flex-direction:column;
+  }
+  header{
+    background:linear-gradient(180deg,var(--maroon),var(--maroon2)); color:#fff;
+    padding:12px 18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
+  }
+  header .mark{
+    width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd98a,var(--gold));
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:#4a1000;flex:0 0 auto;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);
+  }
+  header h1{font-size:19px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .sub{font-size:12px;opacity:.85;margin-top:2px}
+  header .spacer{flex:1}
+  header button, header select{
+    background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.35);
+    padding:6px 11px; border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  header select{padding:6px 8px}
+  header button:hover{background:rgba(255,255,255,.22)}
+  .pill{font-size:11px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+        padding:4px 9px;border-radius:20px;letter-spacing:.3px}
+  main{flex:1; display:flex; min-height:0; max-width:1080px; width:100%; margin:0 auto;}
+  #chatcol{flex:1; display:flex; flex-direction:column; min-width:0}
+  #log{flex:1; overflow-y:auto; padding:20px 18px 8px; scroll-behavior:smooth}
+  .msg{max-width:88%; margin:0 0 16px; line-height:1.62; font-size:15.5px}
+  .msg .who{font-size:11.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--soft); margin-bottom:4px}
+  .msg.guru .bubble{
+    background:var(--cream); border:1px solid var(--line); border-left:4px solid var(--maroon);
+    border-radius:4px 12px 12px 12px; padding:12px 15px; white-space:pre-wrap; word-wrap:break-word;
+  }
+  .msg.user{margin-left:auto}
+  .msg.user .who{text-align:right}
+  .msg.user .bubble{
+    background:#fff4e0; border:1px solid #eccfa0; border-right:4px solid var(--saffron);
+    border-radius:12px 4px 12px 12px; padding:12px 15px; white-space:pre-wrap; word-wrap:break-word;
+  }
+  .msg.guru .bubble b{color:var(--maroon2)}
+  .msg.guru .bubble .h{display:block; margin:10px 0 3px; font-weight:700; color:var(--maroon)}
+  .msg.guru .bubble .li{margin:2px 0 2px 6px}
+  .sys{max-width:100%; text-align:center; color:var(--soft); font-size:13px; margin:10px 0 18px}
+  .sys .box{display:inline-block; background:#fff8ea; border:1px dashed var(--line); border-radius:10px; padding:9px 14px}
+  .thinking{color:var(--gold); font-style:italic; font-size:14px}
+  footer{border-top:1px solid var(--line); background:var(--cream); padding:10px 18px 14px}
+  #chips{max-width:1080px; margin:0 auto 8px; display:flex; gap:7px; flex-wrap:wrap}
+  .chip{
+    background:#fff; border:1px solid var(--line); color:var(--maroon2); border-radius:20px;
+    padding:5px 12px; font-size:12.5px; cursor:pointer; font-family:inherit;
+  }
+  .chip:hover{background:#fff2dd}
+  #inputrow{max-width:1080px; margin:0 auto; display:flex; gap:10px; align-items:flex-end}
+  #q{
+    flex:1; resize:none; min-height:46px; max-height:170px; padding:11px 13px; font-size:15px;
+    font-family:inherit; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink);
+  }
+  #q:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(176,122,26,.15)}
+  #send{
+    background:linear-gradient(180deg,var(--saffron),#c9740d); color:#fff; border:none;
+    padding:12px 22px; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  #send:disabled{opacity:.5; cursor:default}
+  .modal{position:fixed; inset:0; background:rgba(30,20,10,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:50}
+  .modal.open{display:flex}
+  .card{
+    background:var(--cream); border:1px solid var(--line); border-radius:14px; padding:22px;
+    max-width:580px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 14px 40px rgba(0,0,0,.3)
+  }
+  .card h2{margin:0 0 4px; color:var(--maroon); font-size:19px}
+  .card p{font-size:13.5px; color:var(--soft); line-height:1.6}
+  .card label{display:block; font-size:12.5px; font-weight:700; color:var(--maroon2); margin:14px 0 5px; letter-spacing:.3px}
+  .card input,.card select{
+    width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:9px;
+    font-family:inherit; font-size:14px; background:#fff; color:var(--ink);
+  }
+  .card .row{display:flex; gap:10px; margin-top:18px}
+  .card button{flex:1; padding:11px; border-radius:9px; border:none; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer}
+  .primary{background:var(--maroon); color:#fff}
+  .ghost{background:#fff; border:1px solid var(--line)!important; color:var(--maroon2)}
+  .note{font-size:12px; color:var(--soft); background:#fff8ea; border:1px dashed var(--line); border-radius:9px; padding:9px 11px; margin-top:14px; line-height:1.55}
+  .note a{color:var(--maroon)}
+  .status{font-size:12.5px; margin-top:8px; color:var(--maroon2)}
+  .status.ok{color:#1c6b34}
+  @media(max-width:600px){
+    header h1{font-size:16px} .msg{max-width:94%} #log{padding:14px 12px 6px}
+    header{padding:10px 12px; gap:9px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark">ॐ</div>
+  <div>
+    <h1>पंडित शास्त्री जी <span style="opacity:.7;font-weight:400">(गुरुजी)</span></h1>
+    <div class="sub">आपके ज्योतिष मार्गदर्शक एवं मित्र &nbsp;·&nbsp; <span id="todayLabel"></span></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="pill" id="provPill">Sarvam</span>
+  <select id="personSel" title="किसकी कुंडली पर बात करनी है">
+    <option>Dhirendra Bagri</option>
+    <option>Pinky Chawla</option>
+    <option>Raghavendra</option>
+  </select>
+  <button id="clearBtn">नई बातचीत</button>
+  <button id="setBtn">⚙ सेटिंग</button>
+</header>
+
+<main>
+  <div id="chatcol">
+    <div id="log"></div>
+  </div>
+</main>
+
+<footer>
+  <div id="chips">
+    <button class="chip">आज का दिन कैसा है?</button>
+    <button class="chip">मेरी साधना कब पकड़ बनाएगी?</button>
+    <button class="chip">Transfer कब होगा?</button>
+    <button class="chip">मेरे बेटे के बारे में बताइए</button>
+    <button class="chip">मेरा मन शांत कैसे होगा?</button>
+    <button class="chip">Farm house कब बनेगा?</button>
+  </div>
+  <div id="inputrow">
+    <textarea id="q" rows="1" placeholder="गुरुजी से कुछ भी पूछिए… (Hinglish / हिंदी / English)"></textarea>
+    <button id="send">भेजें</button>
+  </div>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <h2>सेटिंग — AI प्रदाता</h2>
+    <p>गुरुजी को चलाने के लिए एक API key चाहिए। Key सिर्फ आपके browser में (localStorage) रहती है — कहीं भेजी नहीं जाती, सीधे प्रदाता को जाती है।</p>
+
+    <label for="provider">प्रदाता (Provider)</label>
+    <select id="provider">
+      <option value="sarvam">Sarvam AI (भारत) — डिफ़ॉल्ट</option>
+      <option value="gemini">Google Gemini</option>
+    </select>
+
+    <label for="key">API Key</label>
+    <input id="key" type="password" placeholder="" autocomplete="off">
+
+    <label for="model">Model</label>
+    <select id="model"></select>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost" id="refreshModels" style="flex:0 0 auto;padding:8px 14px;font-size:13px">🔄 Models refresh करें</button>
+    </div>
+    <div class="status" id="modelStatus"></div>
+
+    <div class="row">
+      <button class="ghost" id="closeSet">बंद करें</button>
+      <button class="primary" id="saveSet">सेव करें</button>
+    </div>
+
+    <div class="note" id="keyHelp"></div>
+    <div class="note">
+      <b>ईमानदार बात:</b> गुरुजी एक AI मार्गदर्शक हैं, असली व्यक्ति नहीं। ज्योतिष एक परंपरागत मार्गदर्शन-प्रणाली है, विज्ञान नहीं। स्वास्थ्य, कानून या पैसे के फैसलों के लिए योग्य विशेषज्ञ से मिलिए।
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"meta":{"computed":"2026-10-23","ayanamsa":"Lahiri 23 deg 43' (for 1990)","method":"Sidereal (Lahiri), whole-sign houses, Vimshottari dasha, from JPL DE421 ephemeris."},"people":{"Dhirendra Bagri":{"name":"Dhirendra Bagri","birth":"4 Aug 1990, 17:25 IST","place":"Kota, Rajasthan","lagna":{"sign":"Sagittarius","sign_sanskrit":"Dhanu","degree":"21°06'","lord":"Jupiter","nakshatra":"Purva Ashadha","pada":3,"nak_lord":"Venus"},"planets":[{"planet":"Sun","sign":"Cancer","sign_sanskrit":"Karka","degree":"18°08'","house":8,"nakshatra":"Ashlesha","pada":1,"nak_lord":"Mercury"},{"planet":"Moon","sign":"Sagittarius","sign_sanskrit":"Dhanu","degree":"23°32'","house":1,"nakshatra":"Purva Ashadha","pada":4,"nak_lord":"Venus"},{"planet":"Mars","sign":"Aries","sign_sanskrit":"Mesha","degree":"21°06'","house":5,"nakshatra":"Bharani","pada":3,"nak_lord":"Venus"},{"planet":"Mercury","sign":"Leo","sign_sanskrit":"Simha","degree":"14°25'","house":9,"nakshatra":"Purva Phalguni","pada":1,"nak_lord":"Venus"},{"planet":"Jupiter","sign":"Cancer","sign_sanskrit":"Karka","degree":"3°17'","house":8,"nakshatra":"Punarvasu","pada":4,"nak_lord":"Jupiter"},{"planet":"Venus","sign":"Gemini","sign_sanskrit":"Mithuna","degree":"24°49'","house":7,"nakshatra":"Punarvasu","pada":2,"nak_lord":"Jupiter"},{"planet":"Saturn","sign":"Sagittarius","sign_sanskrit":"Dhanu","degree":"26°49'","house":1,"nakshatra":"Uttara Ashadha","pada":1,"nak_lord":"Sun"},{"planet":"Rahu","sign":"Capricorn","sign_sanskrit":"Makara","degree":"13°20'","house":2,"nakshatra":"Shravana","pada":1,"nak_lord":"Moon"},{"planet":"Ketu","sign":"Cancer","sign_sanskrit":"Karka","degree":"13°20'","house":8,"nakshatra":"Pushya","pada":3,"nak_lord":"Saturn"}],"navamsa":{"Sun":"Sagittarius","Moon":"Scorpio","Mars":"Libra","Mercury":"Leo","Jupiter":"Cancer","Venus":"Taurus","Saturn":"Sagittarius","Rahu":"Aries","Ketu":"Libra"},"navamsa_lagna":"Libra","moon_nakshatra":"Purva Ashadha","moon_nak_lord":"Venus","notes":["Ascendant Sagittarius 21 deg, lord Jupiter. Moon conjunct Saturn in the 1st house.","Jupiter (Ascendant lord and guru-karaka) is EXALTED in Cancer and Vargottama, in the 8th house with Ketu (moksha-karaka) and the Sun.","Saturn is the Atmakaraka (highest degree, 26 deg 49) and sits in the Ascendant; Saturn is also Vargottama.","Mars rules the 5th (mantra) and 12th (moksha) and sits in its own sign Aries in the 5th house.","Mercury (9th house, teaching) in Leo; 9th lord Sun in the 8th with Jupiter and Ketu.","Moon in Purva Ashadha nakshatra (lord Venus, deity Apas - the waters).","This is a moksha-oriented, renunciate chart. He desires a simple, natural, village life with cows.","Running: Rahu Mahadasha Apr 2018 - Apr 2036. Current antardasha Rahu-Mercury (Mar 2026 - Oct 2028).","Key spiritual window: Rahu-Ketu Oct 2028 - Oct 2029. Full flowering: Jupiter Mahadasha Apr 2036 - Apr 2052.","Land/farmhouse window: Jupiter transits his 4th house (Pisces) 2034-2035; the Jupiter Mahadasha from 2036 is the period for land, cows and dharmic life.","His mind is restless (chanchal): Moon conjunct Saturn, and the Moon rules his 8th house. Remedy emphasis is mantra, Shiva worship, pranayama."],"dasha":[{"lord":"Venus","from":"04 Aug 1990","to":"14 Apr 1995","ads":[{"lord":"Venus","from":"04 Aug 1990","to":"17 May 1991"},{"lord":"Sun","from":"17 May 1991","to":"11 Aug 1991"},{"lord":"Moon","from":"11 Aug 1991","to":"31 Dec 1991"},{"lord":"Mars","from":"31 Dec 1991","to":"09 Apr 1992"},{"lord":"Rahu","from":"09 Apr 1992","to":"23 Dec 1992"},{"lord":"Jupiter","from":"23 Dec 1992","to":"08 Aug 1993"},{"lord":"Saturn","from":"08 Aug 1993","to":"06 May 1994"},{"lord":"Mercury","from":"06 May 1994","to":"04 Jan 1995"},{"lord":"Ketu","from":"04 Jan 1995","to":"14 Apr 1995"}]},{"lord":"Sun","from":"14 Apr 1995","to":"14 Apr 2001","ads":[{"lord":"Sun","from":"14 Apr 1995","to":"02 Aug 1995"},{"lord":"Moon","from":"02 Aug 1995","to":"01 Feb 1996"},{"lord":"Mars","from":"01 Feb 1996","to":"07 Jun 1996"},{"lord":"Rahu","from":"07 Jun 1996","to":"02 May 1997"},{"lord":"Jupiter","from":"02 May 1997","to":"18 Feb 1998"},{"lord":"Saturn","from":"18 Feb 1998","to":"31 Jan 1999"},{"lord":"Mercury","from":"31 Jan 1999","to":"08 Dec 1999"},{"lord":"Ketu","from":"08 Dec 1999","to":"13 Apr 2000"},{"lord":"Venus","from":"13 Apr 2000","to":"13 Apr 2001"}]},{"lord":"Moon","from":"14 Apr 2001","to":"14 Apr 2011","ads":[{"lord":"Moon","from":"14 Apr 2001","to":"12 Feb 2002"},{"lord":"Mars","from":"12 Feb 2002","to":"13 Sep 2002"},{"lord":"Rahu","from":"13 Sep 2002","to":"14 Mar 2004"},{"lord":"Jupiter","from":"14 Mar 2004","to":"14 Jul 2005"},{"lord":"Saturn","from":"14 Jul 2005","to":"12 Feb 2007"},{"lord":"Mercury","from":"12 Feb 2007","to":"14 Jul 2008"},{"lord":"Ketu","from":"14 Jul 2008","to":"12 Feb 2009"},{"lord":"Venus","from":"12 Feb 2009","to":"13 Oct 2010"},{"lord":"Sun","from":"13 Oct 2010","to":"14 Apr 2011"}]},{"lord":"Mars","from":"14 Apr 2011","to":"14 Apr 2018","ads":[{"lord":"Mars","from":"14 Apr 2011","to":"10 Sep 2011"},{"lord":"Rahu","from":"10 Sep 2011","to":"28 Sep 2012"},{"lord":"Jupiter","from":"28 Sep 2012","to":"04 Sep 2013"},{"lord":"Saturn","from":"04 Sep 2013","to":"13 Oct 2014"},{"lord":"Mercury","from":"13 Oct 2014","to":"10 Oct 2015"},{"lord":"Ketu","from":"10 Oct 2015","to":"08 Mar 2016"},{"lord":"Venus","from":"08 Mar 2016","to":"08 May 2017"},{"lord":"Sun","from":"08 May 2017","to":"12 Sep 2017"},{"lord":"Moon","from":"12 Sep 2017","to":"13 Apr 2018"}]},{"lord":"Rahu","from":"14 Apr 2018","to":"13 Apr 2036","ads":[{"lord":"Rahu","from":"14 Apr 2018","to":"25 Dec 2020"},{"lord":"Jupiter","from":"25 Dec 2020","to":"21 May 2023"},{"lord":"Saturn","from":"21 May 2023","to":"27 Mar 2026"},{"lord":"Mercury","from":"27 Mar 2026","to":"13 Oct 2028"},{"lord":"Ketu","from":"13 Oct 2028","to":"31 Oct 2029"},{"lord":"Venus","from":"31 Oct 2029","to":"31 Oct 2032"},{"lord":"Sun","from":"31 Oct 2032","to":"25 Sep 2033"},{"lord":"Moon","from":"25 Sep 2033","to":"27 Mar 2035"},{"lord":"Mars","from":"27 Mar 2035","to":"13 Apr 2036"}]},{"lord":"Jupiter","from":"13 Apr 2036","to":"13 Apr 2052","ads":[{"lord":"Jupiter","from":"13 Apr 2036","to":"01 Jun 2038"},{"lord":"Saturn","from":"01 Jun 2038","to":"13 Dec 2040"},{"lord":"Mercury","from":"13 Dec 2040","to":"20 Mar 2043"},{"lord":"Ketu","from":"20 Mar 2043","to":"24 Feb 2044"},{"lord":"Venus","from":"24 Feb 2044","to":"25 Oct 2046"},{"lord":"Sun","from":"25 Oct 2046","to":"13 Aug 2047"},{"lord":"Moon","from":"13 Aug 2047","to":"12 Dec 2048"},{"lord":"Mars","from":"12 Dec 2048","to":"18 Nov 2049"},{"lord":"Rahu","from":"18 Nov 2049","to":"12 Apr 2052"}]},{"lord":"Saturn","from":"13 Apr 2052","to":"14 Apr 2071","ads":[{"lord":"Saturn","from":"13 Apr 2052","to":"17 Apr 2055"},{"lord":"Mercury","from":"17 Apr 2055","to":"25 Dec 2057"},{"lord":"Ketu","from":"25 Dec 2057","to":"03 Feb 2059"},{"lord":"Venus","from":"03 Feb 2059","to":"04 Apr 2062"},{"lord":"Sun","from":"04 Apr 2062","to":"17 Mar 2063"},{"lord":"Moon","from":"17 Mar 2063","to":"15 Oct 2064"},{"lord":"Mars","from":"15 Oct 2064","to":"24 Nov 2065"},{"lord":"Rahu","from":"24 Nov 2065","to":"30 Sep 2068"},{"lord":"Jupiter","from":"30 Sep 2068","to":"13 Apr 2071"}]},{"lord":"Mercury","from":"14 Apr 2071","to":"13 Apr 2088","ads":[{"lord":"Mercury","from":"14 Apr 2071","to":"10 Sep 2073"},{"lord":"Ketu","from":"10 Sep 2073","to":"07 Sep 2074"},{"lord":"Venus","from":"07 Sep 2074","to":"08 Jul 2077"},{"lord":"Sun","from":"08 Jul 2077","to":"14 May 2078"},{"lord":"Moon","from":"14 May 2078","to":"13 Oct 2079"},{"lord":"Mars","from":"13 Oct 2079","to":"10 Oct 2080"},{"lord":"Rahu","from":"10 Oct 2080","to":"29 Apr 2083"},{"lord":"Jupiter","from":"29 Apr 2083","to":"04 Aug 2085"},{"lord":"Saturn","from":"04 Aug 2085","to":"13 Apr 2088"}]},{"lord":"Ketu","from":"13 Apr 2088","to":"14 Apr 2095","ads":[{"lord":"Ketu","from":"13 Apr 2088","to":"09 Sep 2088"},{"lord":"Venus","from":"09 Sep 2088","to":"09 Nov 2089"},{"lord":"Sun","from":"09 Nov 2089","to":"17 Mar 2090"},{"lord":"Moon","from":"17 Mar 2090","to":"16 Oct 2090"},{"lord":"Mars","from":"16 Oct 2090","to":"14 Mar 2091"},{"lord":"Rahu","from":"14 Mar 2091","to":"31 Mar 2092"},{"lord":"Jupiter","from":"31 Mar 2092","to":"07 Mar 2093"},{"lord":"Saturn","from":"07 Mar 2093","to":"16 Apr 2094"},{"lord":"Mercury","from":"16 Apr 2094","to":"13 Apr 2095"}]}]},"Pinky Chawla":{"name":"Pinky Chawla","birth":"16 Feb 1993, 15:15 IST","place":"Chittorgarh, Rajasthan","lagna":{"sign":"Gemini","sign_sanskrit":"Mithuna","degree":"23°06'","lord":"Mercury","nakshatra":"Punarvasu","pada":1,"nak_lord":"Jupiter"},"planets":[{"planet":"Sun","sign":"Aquarius","sign_sanskrit":"Kumbha","degree":"3°59'","house":9,"nakshatra":"Dhanishta","pada":4,"nak_lord":"Mars"},{"planet":"Moon","sign":"Sagittarius","sign_sanskrit":"Dhanu","degree":"6°59'","house":7,"nakshatra":"Mula","pada":3,"nak_lord":"Ketu"},{"planet":"Mars","sign":"Gemini","sign_sanskrit":"Mithuna","degree":"14°56'","house":1,"nakshatra":"Ardra","pada":3,"nak_lord":"Rahu"},{"planet":"Mercury","sign":"Aquarius","sign_sanskrit":"Kumbha","degree":"20°50'","house":9,"nakshatra":"Purva Bhadrapada","pada":1,"nak_lord":"Jupiter"},{"planet":"Jupiter","sign":"Virgo","sign_sanskrit":"Kanya","degree":"20°24'","house":4,"nakshatra":"Hasta","pada":4,"nak_lord":"Moon"},{"planet":"Venus","sign":"Pisces","sign_sanskrit":"Meena","degree":"17°21'","house":10,"nakshatra":"Revati","pada":1,"nak_lord":"Mercury"},{"planet":"Saturn","sign":"Capricorn","sign_sanskrit":"Makara","degree":"27°59'","house":8,"nakshatra":"Dhanishta","pada":2,"nak_lord":"Mars"},{"planet":"Rahu","sign":"Scorpio","sign_sanskrit":"Vrishchika","degree":"24°12'","house":6,"nakshatra":"Jyeshtha","pada":3,"nak_lord":"Mercury"},{"planet":"Ketu","sign":"Taurus","sign_sanskrit":"Vrishabha","degree":"24°12'","house":12,"nakshatra":"Mrigashira","pada":1,"nak_lord":"Mars"}],"navamsa":{"Sun":"Scorpio","Moon":"Gemini","Mars":"Aquarius","Mercury":"Aries","Jupiter":"Cancer","Venus":"Sagittarius","Saturn":"Virgo","Rahu":"Aquarius","Ketu":"Leo"},"navamsa_lagna":"Aries","moon_nakshatra":"Mula","moon_nak_lord":"Ketu","notes":["Ascendant Gemini 23 deg 06, lord Mercury (a dual sign - a life lived between two places).","Saturn, lord of her 9th house of long-distance movement, sits in the 8th house in its own sign Capricorn - the classical signature of long delay. This is why her transfer has been stuck since 2018.","Moon in the 7th house (spouse) - her mind is anchored in her husband.","Jupiter rules both her 7th (spouse) and 10th (career) and sits in the 4th house (home).","Mercury (her Ascendant lord) and the Sun sit in the 9th house of distant places.","Mars in the 1st house; Ketu in the 12th (relocation).","Running: Moon Mahadasha Jun 2022 - Jun 2032. Current antardasha Moon-Saturn (Sep 2026 - Apr 2028).","Transfer window: Moon-Mercury antardasha Apr 2028 - Sep 2029 (4th lord of home in the 9th house of distant places). Also Jupiter crosses her 4th house Nov 2027 - Dec 2028; Saturn enters her 12th house Aug 2029.","Posted in Chittorgarh since 2018; wants transfer to Kota to join her husband and son."],"dasha":[{"lord":"Ketu","from":"16 Feb 1993","to":"19 Jun 1996","ads":[{"lord":"Ketu","from":"16 Feb 1993","to":"28 Apr 1993"},{"lord":"Venus","from":"28 Apr 1993","to":"17 Nov 1993"},{"lord":"Sun","from":"17 Nov 1993","to":"17 Jan 1994"},{"lord":"Moon","from":"17 Jan 1994","to":"29 Apr 1994"},{"lord":"Mars","from":"29 Apr 1994","to":"09 Jul 1994"},{"lord":"Rahu","from":"09 Jul 1994","to":"07 Jan 1995"},{"lord":"Jupiter","from":"07 Jan 1995","to":"19 Jun 1995"},{"lord":"Saturn","from":"19 Jun 1995","to":"29 Dec 1995"},{"lord":"Mercury","from":"29 Dec 1995","to":"18 Jun 1996"}]},{"lord":"Venus","from":"19 Jun 1996","to":"19 Jun 2016","ads":[{"lord":"Venus","from":"19 Jun 1996","to":"19 Oct 1999"},{"lord":"Sun","from":"19 Oct 1999","to":"18 Oct 2000"},{"lord":"Moon","from":"18 Oct 2000","to":"19 Jun 2002"},{"lord":"Mars","from":"19 Jun 2002","to":"19 Aug 2003"},{"lord":"Rahu","from":"19 Aug 2003","to":"19 Aug 2006"},{"lord":"Jupiter","from":"19 Aug 2006","to":"19 Apr 2009"},{"lord":"Saturn","from":"19 Apr 2009","to":"18 Jun 2012"},{"lord":"Mercury","from":"18 Jun 2012","to":"19 Apr 2015"},{"lord":"Ketu","from":"19 Apr 2015","to":"18 Jun 2016"}]},{"lord":"Sun","from":"19 Jun 2016","to":"19 Jun 2022","ads":[{"lord":"Sun","from":"19 Jun 2016","to":"06 Oct 2016"},{"lord":"Moon","from":"06 Oct 2016","to":"07 Apr 2017"},{"lord":"Mars","from":"07 Apr 2017","to":"13 Aug 2017"},{"lord":"Rahu","from":"13 Aug 2017","to":"07 Jul 2018"},{"lord":"Jupiter","from":"07 Jul 2018","to":"25 Apr 2019"},{"lord":"Saturn","from":"25 Apr 2019","to":"06 Apr 2020"},{"lord":"Mercury","from":"06 Apr 2020","to":"11 Feb 2021"},{"lord":"Ketu","from":"11 Feb 2021","to":"19 Jun 2021"},{"lord":"Venus","from":"19 Jun 2021","to":"19 Jun 2022"}]},{"lord":"Moon","from":"19 Jun 2022","to":"19 Jun 2032","ads":[{"lord":"Moon","from":"19 Jun 2022","to":"19 Apr 2023"},{"lord":"Mars","from":"19 Apr 2023","to":"19 Nov 2023"},{"lord":"Rahu","from":"19 Nov 2023","to":"19 May 2025"},{"lord":"Jupiter","from":"19 May 2025","to":"18 Sep 2026"},{"lord":"Saturn","from":"18 Sep 2026","to":"18 Apr 2028"},{"lord":"Mercury","from":"18 Apr 2028","to":"18 Sep 2029"},{"lord":"Ketu","from":"18 Sep 2029","to":"19 Apr 2030"},{"lord":"Venus","from":"19 Apr 2030","to":"19 Dec 2031"},{"lord":"Sun","from":"19 Dec 2031","to":"18 Jun 2032"}]},{"lord":"Mars","from":"19 Jun 2032","to":"19 Jun 2039","ads":[{"lord":"Mars","from":"19 Jun 2032","to":"15 Nov 2032"},{"lord":"Rahu","from":"15 Nov 2032","to":"03 Dec 2033"},{"lord":"Jupiter","from":"03 Dec 2033","to":"09 Nov 2034"},{"lord":"Saturn","from":"09 Nov 2034","to":"19 Dec 2035"},{"lord":"Mercury","from":"19 Dec 2035","to":"15 Dec 2036"},{"lord":"Ketu","from":"15 Dec 2036","to":"13 May 2037"},{"lord":"Venus","from":"13 May 2037","to":"13 Jul 2038"},{"lord":"Sun","from":"13 Jul 2038","to":"18 Nov 2038"},{"lord":"Moon","from":"18 Nov 2038","to":"19 Jun 2039"}]},{"lord":"Rahu","from":"19 Jun 2039","to":"19 Jun 2057","ads":[{"lord":"Rahu","from":"19 Jun 2039","to":"01 Mar 2042"},{"lord":"Jupiter","from":"01 Mar 2042","to":"25 Jul 2044"},{"lord":"Saturn","from":"25 Jul 2044","to":"01 Jun 2047"},{"lord":"Mercury","from":"01 Jun 2047","to":"18 Dec 2049"},{"lord":"Ketu","from":"18 Dec 2049","to":"06 Jan 2051"},{"lord":"Venus","from":"06 Jan 2051","to":"05 Jan 2054"},{"lord":"Sun","from":"05 Jan 2054","to":"30 Nov 2054"},{"lord":"Moon","from":"30 Nov 2054","to":"31 May 2056"},{"lord":"Mars","from":"31 May 2056","to":"18 Jun 2057"}]},{"lord":"Jupiter","from":"19 Jun 2057","to":"19 Jun 2073","ads":[{"lord":"Jupiter","from":"19 Jun 2057","to":"07 Aug 2059"},{"lord":"Saturn","from":"07 Aug 2059","to":"17 Feb 2062"},{"lord":"Mercury","from":"17 Feb 2062","to":"25 May 2064"},{"lord":"Ketu","from":"25 May 2064","to":"30 Apr 2065"},{"lord":"Venus","from":"30 Apr 2065","to":"30 Dec 2067"},{"lord":"Sun","from":"30 Dec 2067","to":"17 Oct 2068"},{"lord":"Moon","from":"17 Oct 2068","to":"16 Feb 2070"},{"lord":"Mars","from":"16 Feb 2070","to":"23 Jan 2071"},{"lord":"Rahu","from":"23 Jan 2071","to":"18 Jun 2073"}]},{"lord":"Saturn","from":"19 Jun 2073","to":"18 Jun 2092","ads":[{"lord":"Saturn","from":"19 Jun 2073","to":"21 Jun 2076"},{"lord":"Mercury","from":"21 Jun 2076","to":"01 Mar 2079"},{"lord":"Ketu","from":"01 Mar 2079","to":"09 Apr 2080"},{"lord":"Venus","from":"09 Apr 2080","to":"09 Jun 2083"},{"lord":"Sun","from":"09 Jun 2083","to":"21 May 2084"},{"lord":"Moon","from":"21 May 2084","to":"21 Dec 2085"},{"lord":"Mars","from":"21 Dec 2085","to":"29 Jan 2087"},{"lord":"Rahu","from":"29 Jan 2087","to":"05 Dec 2089"},{"lord":"Jupiter","from":"05 Dec 2089","to":"18 Jun 2092"}]},{"lord":"Mercury","from":"18 Jun 2092","to":"19 Jun 2109","ads":[{"lord":"Mercury","from":"18 Jun 2092","to":"15 Nov 2094"},{"lord":"Ketu","from":"15 Nov 2094","to":"12 Nov 2095"},{"lord":"Venus","from":"12 Nov 2095","to":"12 Sep 2098"},{"lord":"Sun","from":"12 Sep 2098","to":"19 Jul 2099"},{"lord":"Moon","from":"19 Jul 2099","to":"19 Dec 2100"},{"lord":"Mars","from":"19 Dec 2100","to":"16 Dec 2101"},{"lord":"Rahu","from":"16 Dec 2101","to":"04 Jul 2104"},{"lord":"Jupiter","from":"04 Jul 2104","to":"10 Oct 2106"},{"lord":"Saturn","from":"10 Oct 2106","to":"19 Jun 2109"}]}]},"Raghavendra":{"name":"Raghavendra","birth":"14 Nov 2020, 07:05 IST","place":"Chittorgarh, Rajasthan","lagna":{"sign":"Scorpio","sign_sanskrit":"Vrishchika","degree":"0°59'","lord":"Mars","nakshatra":"Vishakha","pada":4,"nak_lord":"Jupiter"},"planets":[{"planet":"Sun","sign":"Libra","sign_sanskrit":"Tula","degree":"27°59'","house":12,"nakshatra":"Vishakha","pada":3,"nak_lord":"Jupiter"},{"planet":"Moon","sign":"Libra","sign_sanskrit":"Tula","degree":"11°43'","house":12,"nakshatra":"Swati","pada":2,"nak_lord":"Rahu"},{"planet":"Mars","sign":"Pisces","sign_sanskrit":"Meena","degree":"21°05'","house":5,"nakshatra":"Revati","pada":2,"nak_lord":"Mercury"},{"planet":"Mercury","sign":"Libra","sign_sanskrit":"Tula","degree":"9°29'","house":12,"nakshatra":"Swati","pada":1,"nak_lord":"Rahu"},{"planet":"Jupiter","sign":"Sagittarius","sign_sanskrit":"Dhanu","degree":"28°55'","house":2,"nakshatra":"Uttara Ashadha","pada":1,"nak_lord":"Sun"},{"planet":"Venus","sign":"Virgo","sign_sanskrit":"Kanya","degree":"26°37'","house":11,"nakshatra":"Chitra","pada":1,"nak_lord":"Mars"},{"planet":"Saturn","sign":"Capricorn","sign_sanskrit":"Makara","degree":"2°53'","house":3,"nakshatra":"Uttara Ashadha","pada":2,"nak_lord":"Sun"},{"planet":"Rahu","sign":"Taurus","sign_sanskrit":"Vrishabha","degree":"27°15'","house":7,"nakshatra":"Mrigashira","pada":2,"nak_lord":"Mars"},{"planet":"Ketu","sign":"Scorpio","sign_sanskrit":"Vrishchika","degree":"27°15'","house":1,"nakshatra":"Jyeshtha","pada":4,"nak_lord":"Mercury"}],"navamsa":{"Sun":"Gemini","Moon":"Capricorn","Mars":"Capricorn","Mercury":"Sagittarius","Jupiter":"Sagittarius","Venus":"Leo","Saturn":"Capricorn","Rahu":"Virgo","Ketu":"Pisces"},"navamsa_lagna":"Cancer","moon_nakshatra":"Swati","moon_nak_lord":"Rahu","notes":["Ascendant Scorpio 0 deg 59 - RIGHT ON THE CUSP. The Ascendant moves about 1 degree per 4 minutes, so a birth time even 4-5 minutes earlier would make it Libra. FLAG THIS whenever reading his chart.","Read for Scorpio: the Moon sits in the 12th house (with the Sun and Mercury). The Moon signifies the mother and the 12th house is distance/absence - the chart carries separation from the mother.","Born on Amavasya (new moon) - 14 November 2020 was Diwali. A new-moon birth gives an inward, self-contained emotional nature.","Sun, Moon and Mercury all in Libra - highly sensitive to harmony or discord between his parents.","Jupiter in its own sign Sagittarius in the 2nd house; Saturn in its own sign Capricorn in the 3rd house - real inner steadiness.","Mars (Ascendant lord) in the 5th house of learning - built to be a student.","Running: Rahu Mahadasha Nov 2020 - Jan 2032. Current antardasha Rahu-Mercury (Oct 2025 - May 2027).","Rahu-Venus Jan 2028 - Nov 2029 is a supportive period that coincides with the family reunion window. Jupiter Mahadasha from Jan 2032 (age 11) is his strong education period."],"dasha":[{"lord":"Rahu","from":"14 Nov 2020","to":"18 Jan 2032","ads":[{"lord":"Rahu","from":"14 Nov 2020","to":"19 Jul 2022"},{"lord":"Jupiter","from":"19 Jul 2022","to":"14 Jan 2024"},{"lord":"Saturn","from":"14 Jan 2024","to":"22 Oct 2025"},{"lord":"Mercury","from":"22 Oct 2025","to":"23 May 2027"},{"lord":"Ketu","from":"23 May 2027","to":"16 Jan 2028"},{"lord":"Venus","from":"16 Jan 2028","to":"26 Nov 2029"},{"lord":"Sun","from":"26 Nov 2029","to":"19 Jun 2030"},{"lord":"Moon","from":"19 Jun 2030","to":"25 May 2031"},{"lord":"Mars","from":"25 May 2031","to":"18 Jan 2032"}]},{"lord":"Jupiter","from":"18 Jan 2032","to":"18 Jan 2048","ads":[{"lord":"Jupiter","from":"18 Jan 2032","to":"07 Mar 2034"},{"lord":"Saturn","from":"07 Mar 2034","to":"17 Sep 2036"},{"lord":"Mercury","from":"17 Sep 2036","to":"24 Dec 2038"},{"lord":"Ketu","from":"24 Dec 2038","to":"30 Nov 2039"},{"lord":"Venus","from":"30 Nov 2039","to":"31 Jul 2042"},{"lord":"Sun","from":"31 Jul 2042","to":"19 May 2043"},{"lord":"Moon","from":"19 May 2043","to":"17 Sep 2044"},{"lord":"Mars","from":"17 Sep 2044","to":"24 Aug 2045"},{"lord":"Rahu","from":"24 Aug 2045","to":"17 Jan 2048"}]},{"lord":"Saturn","from":"18 Jan 2048","to":"18 Jan 2067","ads":[{"lord":"Saturn","from":"18 Jan 2048","to":"21 Jan 2051"},{"lord":"Mercury","from":"21 Jan 2051","to":"30 Sep 2053"},{"lord":"Ketu","from":"30 Sep 2053","to":"08 Nov 2054"},{"lord":"Venus","from":"08 Nov 2054","to":"08 Jan 2058"},{"lord":"Sun","from":"08 Jan 2058","to":"21 Dec 2058"},{"lord":"Moon","from":"21 Dec 2058","to":"21 Jul 2060"},{"lord":"Mars","from":"21 Jul 2060","to":"30 Aug 2061"},{"lord":"Rahu","from":"30 Aug 2061","to":"06 Jul 2064"},{"lord":"Jupiter","from":"06 Jul 2064","to":"17 Jan 2067"}]},{"lord":"Mercury","from":"18 Jan 2067","to":"18 Jan 2084","ads":[{"lord":"Mercury","from":"18 Jan 2067","to":"15 Jun 2069"},{"lord":"Ketu","from":"15 Jun 2069","to":"12 Jun 2070"},{"lord":"Venus","from":"12 Jun 2070","to":"12 Apr 2073"},{"lord":"Sun","from":"12 Apr 2073","to":"17 Feb 2074"},{"lord":"Moon","from":"17 Feb 2074","to":"19 Jul 2075"},{"lord":"Mars","from":"19 Jul 2075","to":"15 Jul 2076"},{"lord":"Rahu","from":"15 Jul 2076","to":"02 Feb 2079"},{"lord":"Jupiter","from":"02 Feb 2079","to":"10 May 2081"},{"lord":"Saturn","from":"10 May 2081","to":"18 Jan 2084"}]},{"lord":"Ketu","from":"18 Jan 2084","to":"17 Jan 2091","ads":[{"lord":"Ketu","from":"18 Jan 2084","to":"15 Jun 2084"},{"lord":"Venus","from":"15 Jun 2084","to":"15 Aug 2085"},{"lord":"Sun","from":"15 Aug 2085","to":"21 Dec 2085"},{"lord":"Moon","from":"21 Dec 2085","to":"22 Jul 2086"},{"lord":"Mars","from":"22 Jul 2086","to":"18 Dec 2086"},{"lord":"Rahu","from":"18 Dec 2086","to":"05 Jan 2088"},{"lord":"Jupiter","from":"05 Jan 2088","to":"11 Dec 2088"},{"lord":"Saturn","from":"11 Dec 2088","to":"20 Jan 2090"},{"lord":"Mercury","from":"20 Jan 2090","to":"17 Jan 2091"}]},{"lord":"Venus","from":"17 Jan 2091","to":"18 Jan 2111","ads":[{"lord":"Venus","from":"17 Jan 2091","to":"19 May 2094"},{"lord":"Sun","from":"19 May 2094","to":"19 May 2095"},{"lord":"Moon","from":"19 May 2095","to":"17 Jan 2097"},{"lord":"Mars","from":"17 Jan 2097","to":"19 Mar 2098"},{"lord":"Rahu","from":"19 Mar 2098","to":"19 Mar 2101"},{"lord":"Jupiter","from":"19 Mar 2101","to":"18 Nov 2103"},{"lord":"Saturn","from":"18 Nov 2103","to":"18 Jan 2107"},{"lord":"Mercury","from":"18 Jan 2107","to":"17 Nov 2109"},{"lord":"Ketu","from":"17 Nov 2109","to":"17 Jan 2111"}]},{"lord":"Sun","from":"18 Jan 2111","to":"18 Jan 2117","ads":[{"lord":"Sun","from":"18 Jan 2111","to":"08 May 2111"},{"lord":"Moon","from":"08 May 2111","to":"06 Nov 2111"},{"lord":"Mars","from":"06 Nov 2111","to":"13 Mar 2112"},{"lord":"Rahu","from":"13 Mar 2112","to":"05 Feb 2113"},{"lord":"Jupiter","from":"05 Feb 2113","to":"24 Nov 2113"},{"lord":"Saturn","from":"24 Nov 2113","to":"06 Nov 2114"},{"lord":"Mercury","from":"06 Nov 2114","to":"12 Sep 2115"},{"lord":"Ketu","from":"12 Sep 2115","to":"18 Jan 2116"},{"lord":"Venus","from":"18 Jan 2116","to":"17 Jan 2117"}]},{"lord":"Moon","from":"18 Jan 2117","to":"18 Jan 2127","ads":[{"lord":"Moon","from":"18 Jan 2117","to":"18 Nov 2117"},{"lord":"Mars","from":"18 Nov 2117","to":"19 Jun 2118"},{"lord":"Rahu","from":"19 Jun 2118","to":"19 Dec 2119"},{"lord":"Jupiter","from":"19 Dec 2119","to":"19 Apr 2121"},{"lord":"Saturn","from":"19 Apr 2121","to":"18 Nov 2122"},{"lord":"Mercury","from":"18 Nov 2122","to":"18 Apr 2124"},{"lord":"Ketu","from":"18 Apr 2124","to":"17 Nov 2124"},{"lord":"Venus","from":"17 Nov 2124","to":"19 Jul 2126"},{"lord":"Sun","from":"19 Jul 2126","to":"18 Jan 2127"}]},{"lord":"Mars","from":"18 Jan 2127","to":"18 Jan 2134","ads":[{"lord":"Mars","from":"18 Jan 2127","to":"16 Jun 2127"},{"lord":"Rahu","from":"16 Jun 2127","to":"04 Jul 2128"},{"lord":"Jupiter","from":"04 Jul 2128","to":"09 Jun 2129"},{"lord":"Saturn","from":"09 Jun 2129","to":"19 Jul 2130"},{"lord":"Mercury","from":"19 Jul 2130","to":"16 Jul 2131"},{"lord":"Ketu","from":"16 Jul 2131","to":"12 Dec 2131"},{"lord":"Venus","from":"12 Dec 2131","to":"10 Feb 2133"},{"lord":"Sun","from":"10 Feb 2133","to":"18 Jun 2133"},{"lord":"Moon","from":"18 Jun 2133","to":"17 Jan 2134"}]}]}},"transits":{"Jupiter":[["2025-01","Taurus",17.7],["2025-02","Taurus",17.3],["2025-03","Taurus",19.5],["2025-04","Taurus",24.2],["2025-05","Gemini",0.2],["2025-06","Gemini",7.1],["2025-07","Gemini",13.9],["2025-08","Gemini",20.5],["2025-09","Gemini",26.1],["2025-10","Gemini",29.8],["2025-11","Cancer",0.9],["2025-12","Gemini",29.1],["2026-01","Gemini",25.2],["2026-02","Gemini",21.8],["2026-03","Gemini",20.9],["2026-04","Gemini",22.8],["2026-05","Gemini",26.9],["2026-06","Cancer",2.7],["2026-07","Cancer",9.1],["2026-08","Cancer",15.9],["2026-09","Cancer",22.4],["2026-10","Cancer",27.8],["2026-11","Leo",1.6],["2026-12","Leo",2.8],["2027-01","Leo",1.0],["2027-02","Cancer",27.2],["2027-03","Cancer",24.0],["2027-04","Cancer",22.8],["2027-05","Cancer",24.3],["2027-06","Cancer",28.3],["2027-07","Leo",3.6],["2027-08","Leo",10.0],["2027-09","Leo",16.7],["2027-10","Leo",23.0],["2027-11","Leo",28.4],["2027-12","Virgo",2.1],["2028-01","Virgo",3.3],["2028-02","Virgo",1.5],["2028-03","Leo",28.0],["2028-04","Leo",24.5],["2028-05","Leo",23.3],["2028-06","Leo",24.8],["2028-07","Leo",28.6],["2028-08","Virgo",4.0],["2028-09","Virgo",10.4],["2028-10","Virgo",16.9],["2028-11","Virgo",23.3],["2028-12","Virgo",28.5],["2029-01","Libra",2.1],["2029-02","Libra",3.1],["2029-03","Libra",1.5],["2029-04","Virgo",27.9],["2029-05","Virgo",24.5],["2029-06","Virgo",23.2],["2029-07","Virgo",24.7],["2029-08","Virgo",28.5],["2029-09","Libra",4.0],["2029-10","Libra",10.2],["2029-11","Libra",17.0],["2029-12","Libra",23.2],["2030-01","Libra",28.7],["2030-02","Scorpio",2.3],["2030-03","Scorpio",3.4],["2030-04","Scorpio",1.7],["2030-05","Libra",28.2],["2030-06","Libra",24.8],["2030-07","Libra",23.5],["2030-08","Libra",24.9],["2030-09","Libra",28.8],["2030-10","Scorpio",4.2],["2030-11","Scorpio",10.8],["2030-12","Scorpio",17.5],["2031-01","Scorpio",24.1],["2031-02","Scorpio",29.7],["2031-03","Sagittarius",3.2],["2031-04","Sagittarius",4.7],["2031-05","Sagittarius",3.3],["2031-06","Scorpio",29.8],["2031-07","Scorpio",26.4],["2031-08","Scorpio",24.8],["2031-09","Scorpio",26.2],["2031-10","Sagittarius",0.0],["2031-11","Sagittarius",5.7],["2031-12","Sagittarius",12.3],["2032-01","Sagittarius",19.4],["2032-02","Sagittarius",26.3],["2032-03","Capricorn",1.8],["2032-04","Capricorn",6.1],["2032-05","Capricorn",7.8],["2032-06","Capricorn",6.7],["2032-07","Capricorn",3.4],["2032-08","Sagittarius",29.7],["2032-09","Sagittarius",28.0],["2032-10","Sagittarius",29.2],["2032-11","Capricorn",3.1],["2032-12","Capricorn",8.7],["2033-01","Capricorn",15.7],["2033-02","Capricorn",23.0],["2033-03","Capricorn",29.5],["2033-04","Aquarius",5.8],["2033-05","Aquarius",10.4],["2033-06","Aquarius",12.8],["2033-07","Aquarius",12.4],["2033-08","Aquarius",9.3],["2033-09","Aquarius",5.4],["2033-10","Aquarius",3.2],["2033-11","Aquarius",4.0],["2033-12","Aquarius",7.6],["2034-01","Aquarius",13.3],["2034-02","Aquarius",20.3],["2034-03","Aquarius",27.0],["2034-04","Pisces",4.3],["2034-05","Pisces",10.7],["2034-06","Pisces",16.0],["2034-07","Pisces",19.1],["2034-08","Pisces",19.4],["2034-09","Pisces",16.7],["2034-10","Pisces",12.8],["2034-11","Pisces",10.0],["2034-12","Pisces",10.1],["2035-01","Pisces",13.3],["2035-02","Pisces",18.8],["2035-03","Pisces",24.9],["2035-04","Aries",2.2],["2035-05","Aries",9.4],["2035-06","Aries",16.2],["2035-07","Aries",21.6],["2035-08","Aries",25.3],["2035-09","Aries",26.3],["2035-10","Aries",24.3],["2035-11","Aries",20.3],["2035-12","Aries",17.1],["2036-01","Aries",16.5],["2036-02","Aries",19.1],["2036-03","Aries",23.7],["2036-04","Taurus",0.1],["2036-05","Taurus",7.0],["2036-06","Taurus",14.3],["2036-07","Taurus",20.8],["2036-08","Taurus",26.6],["2036-09","Gemini",0.6],["2036-10","Gemini",1.9],["2036-11","Gemini",0.2],["2036-12","Taurus",26.4],["2037-01","Taurus",22.8],["2037-02","Taurus",21.9],["2037-03","Taurus",23.7],["2037-04","Taurus",28.0],["2037-05","Gemini",3.8],["2037-06","Gemini",10.6],["2037-07","Gemini",17.4],["2037-08","Gemini",24.1],["2037-09","Gemini",29.9],["2037-10","Cancer",3.8],["2037-11","Cancer",5.4],["2037-12","Cancer",4.0],["2038-01","Cancer",0.3],["2038-02","Gemini",26.6],["2038-03","Gemini",25.3],["2038-04","Gemini",26.8],["2038-05","Cancer",0.6],["2038-06","Cancer",6.2],["2038-07","Cancer",12.5],["2038-08","Cancer",19.3],["2038-09","Cancer",25.9],["2038-10","Leo",1.4],["2038-11","Leo",5.5],["2038-12","Leo",7.1],["2039-01","Leo",5.7],["2039-02","Leo",2.1],["2039-03","Cancer",28.7],["2039-04","Cancer",27.0],["2039-05","Cancer",28.2],["2039-06","Leo",1.8],["2039-07","Leo",7.0],["2039-08","Leo",13.3],["2039-09","Leo",20.0],["2039-10","Leo",26.3],["2039-11","Virgo",1.9],["2039-12","Virgo",5.8],["2040-01","Virgo",7.4],["2040-02","Virgo",6.0],["2040-03","Virgo",2.7],["2040-04","Leo",29.0],["2040-05","Leo",27.5],["2040-06","Leo",28.6],["2040-07","Virgo",2.1],["2040-08","Virgo",7.3],["2040-09","Virgo",13.6],["2040-10","Virgo",20.1],["2040-11","Virgo",26.6],["2040-12","Libra",2.0],["2041-01","Libra",5.9],["2041-02","Libra",7.3],["2041-03","Libra",6.1],["2041-04","Libra",2.6],["2041-05","Virgo",29.1],["2041-06","Virgo",27.4],["2041-07","Virgo",28.5],["2041-08","Libra",2.0],["2041-09","Libra",7.3],["2041-10","Libra",13.5],["2041-11","Libra",20.2],["2041-12","Libra",26.6],["2042-01","Scorpio",2.3],["2042-02","Scorpio",6.2],["2042-03","Scorpio",7.6],["2042-04","Scorpio",6.4],["2042-05","Scorpio",3.1],["2042-06","Libra",29.4],["2042-07","Libra",27.8],["2042-08","Libra",28.8],["2042-09","Scorpio",2.4],["2042-10","Scorpio",7.6],["2042-11","Scorpio",14.1],["2042-12","Scorpio",20.8],["2043-01","Scorpio",27.6],["2043-02","Sagittarius",3.4],["2043-03","Sagittarius",7.2],["2043-04","Sagittarius",9.1],["2043-05","Sagittarius",8.2],["2043-06","Sagittarius",4.8],["2043-07","Sagittarius",1.2],["2043-08","Scorpio",29.3],["2043-09","Sagittarius",0.3],["2043-10","Sagittarius",3.8],["2043-11","Sagittarius",9.3],["2043-12","Sagittarius",15.7],["2044-01","Sagittarius",22.9],["2044-02","Sagittarius",29.8],["2044-03","Capricorn",5.6],["2044-04","Capricorn",10.2],["2044-05","Capricorn",12.3],["2044-06","Capricorn",11.7],["2044-07","Capricorn",8.7],["2044-08","Capricorn",4.9],["2044-09","Capricorn",2.7],["2044-10","Capricorn",3.5],["2044-11","Capricorn",7.0],["2044-12","Capricorn",12.4],["2045-01","Capricorn",19.3],["2045-02","Capricorn",26.6],["2045-03","Aquarius",3.2],["2045-04","Aquarius",9.6],["2045-05","Aquarius",14.5],["2045-06","Aquarius",17.4],["2045-07","Aquarius",17.5],["2045-08","Aquarius",14.7],["2045-09","Aquarius",10.8],["2045-10","Aquarius",8.2],["2045-11","Aquarius",8.5],["2045-12","Aquarius",11.7]],"Saturn":[["2025-01","Aquarius",21.5],["2025-02","Aquarius",24.9],["2025-03","Aquarius",28.3],["2025-04","Pisces",2.0],["2025-05","Pisces",5.0],["2025-06","Pisces",7.1],["2025-07","Pisces",7.7],["2025-08","Pisces",6.8],["2025-09","Pisces",4.7],["2025-10","Pisces",2.5],["2025-11","Pisces",1.1],["2025-12","Pisces",1.2],["2026-01","Pisces",3.0],["2026-02","Pisces",5.9],["2026-03","Pisces",9.3],["2026-04","Pisces",13.1],["2026-05","Pisces",16.5],["2026-06","Pisces",19.1],["2026-07","Pisces",20.4],["2026-08","Pisces",20.2],["2026-09","Pisces",18.5],["2026-10","Pisces",16.2],["2026-11","Pisces",14.3],["2026-12","Pisces",13.7],["2027-01","Pisces",14.8],["2027-02","Pisces",17.4],["2027-03","Pisces",20.5],["2027-04","Pisces",24.4],["2027-05","Pisces",28.0],["2027-06","Aries",1.2],["2027-07","Aries",3.1],["2027-08","Aries",3.6],["2027-09","Aries",2.5],["2027-10","Aries",0.4],["2027-11","Pisces",28.1],["2027-12","Pisces",26.8],["2028-01","Pisces",27.2],["2028-02","Pisces",29.3],["2028-03","Aries",2.2],["2028-04","Aries",6.1],["2028-05","Aries",9.8],["2028-06","Aries",13.3],["2028-07","Aries",15.8],["2028-08","Aries",17.0],["2028-09","Aries",16.6],["2028-10","Aries",14.8],["2028-11","Aries",12.3],["2028-12","Aries",10.6],["2029-01","Aries",10.3],["2029-02","Aries",11.7],["2029-03","Aries",14.2],["2029-04","Aries",17.8],["2029-05","Aries",21.6],["2029-06","Aries",25.4],["2029-07","Aries",28.4],["2029-08","Taurus",0.3],["2029-09","Taurus",0.7],["2029-10","Aries",29.4],["2029-11","Aries",27.1],["2029-12","Aries",24.9],["2030-01","Aries",23.8],["2030-02","Aries",24.5],["2030-03","Aries",26.5],["2030-04","Aries",29.8],["2030-05","Taurus",3.6],["2030-06","Taurus",7.5],["2030-07","Taurus",10.9],["2030-08","Taurus",13.5],["2030-09","Taurus",14.6],["2030-10","Taurus",14.1],["2030-11","Taurus",12.1],["2030-12","Taurus",9.7],["2031-01","Taurus",8.0],["2031-02","Taurus",7.9],["2031-03","Taurus",9.3],["2031-04","Taurus",12.1],["2031-05","Taurus",15.7],["2031-06","Taurus",19.7],["2031-07","Taurus",23.4],["2031-08","Taurus",26.5],["2031-09","Taurus",28.4],["2031-10","Taurus",28.6],["2031-11","Taurus",27.3],["2031-12","Taurus",24.9],["2032-01","Taurus",22.7],["2032-02","Taurus",21.8],["2032-03","Taurus",22.5],["2032-04","Taurus",24.8],["2032-05","Taurus",28.1],["2032-06","Gemini",2.0],["2032-07","Gemini",5.9],["2032-08","Gemini",9.4],["2032-09","Gemini",11.9],["2032-10","Gemini",12.9],["2032-11","Gemini",12.2],["2032-12","Gemini",10.2],["2033-01","Gemini",7.7],["2033-02","Gemini",6.1],["2033-03","Gemini",6.1],["2033-04","Gemini",7.7],["2033-05","Gemini",10.5],["2033-06","Gemini",14.3],["2033-07","Gemini",18.1],["2033-08","Gemini",21.9],["2033-09","Gemini",25.0],["2033-10","Gemini",26.7],["2033-11","Gemini",26.8],["2033-12","Gemini",25.4],["2034-01","Gemini",22.9],["2034-02","Gemini",20.8],["2034-03","Gemini",20.0],["2034-04","Gemini",20.9],["2034-05","Gemini",23.1],["2034-06","Gemini",26.5],["2034-07","Cancer",0.3],["2034-08","Cancer",4.3],["2034-09","Cancer",7.7],["2034-10","Cancer",10.1],["2034-11","Cancer",11.0],["2034-12","Cancer",10.3],["2035-01","Cancer",8.1],["2035-02","Cancer",5.7],["2035-03","Cancer",4.3],["2035-04","Cancer",4.3],["2035-05","Cancer",5.9],["2035-06","Cancer",8.9],["2035-07","Cancer",12.4],["2035-08","Cancer",16.4],["2035-09","Cancer",20.1],["2035-10","Cancer",23.0],["2035-11","Cancer",24.7],["2035-12","Cancer",24.7],["2036-01","Cancer",23.1],["2036-02","Cancer",20.6],["2036-03","Cancer",18.7],["2036-04","Cancer",18.0],["2036-05","Cancer",18.9],["2036-06","Cancer",21.3],["2036-07","Cancer",24.6],["2036-08","Cancer",28.5],["2036-09","Leo",2.3],["2036-10","Leo",5.6],["2036-11","Leo",7.8],["2036-12","Leo",8.5],["2037-01","Leo",7.5],["2037-02","Leo",5.3],["2037-03","Leo",3.1],["2037-04","Leo",1.7],["2037-05","Leo",1.9],["2037-06","Leo",3.7],["2037-07","Leo",6.5],["2037-08","Leo",10.2],["2037-09","Leo",14.1],["2037-10","Leo",17.6],["2037-11","Leo",20.4],["2037-12","Leo",21.7],["2038-01","Leo",21.5],["2038-02","Leo",19.7],["2038-03","Leo",17.5],["2038-04","Leo",15.6],["2038-05","Leo",15.0],["2038-06","Leo",16.0],["2038-07","Leo",18.4],["2038-08","Leo",21.7],["2038-09","Leo",25.6],["2038-10","Leo",29.2],["2038-11","Virgo",2.4],["2038-12","Virgo",4.4],["2039-01","Virgo",4.8],["2039-02","Virgo",3.7],["2039-03","Virgo",1.6],["2039-04","Leo",29.3],["2039-05","Leo",28.1],["2039-06","Leo",28.5],["2039-07","Virgo",0.2],["2039-08","Virgo",3.2],["2039-09","Virgo",6.8],["2039-10","Virgo",10.5],["2039-11","Virgo",13.9],["2039-12","Virgo",16.4],["2040-01","Virgo",17.6],["2040-02","Virgo",17.0],["2040-03","Virgo",15.3],["2040-04","Virgo",12.9],["2040-05","Virgo",11.2],["2040-06","Virgo",10.9],["2040-07","Virgo",12.1],["2040-08","Virgo",14.6],["2040-09","Virgo",17.9],["2040-10","Virgo",21.6],["2040-11","Virgo",25.2],["2040-12","Virgo",28.0],["2041-01","Virgo",29.8],["2041-02","Virgo",29.9],["2041-03","Virgo",28.6],["2041-04","Virgo",26.3],["2041-05","Virgo",24.3],["2041-06","Virgo",23.3],["2041-07","Virgo",23.8],["2041-08","Virgo",25.8],["2041-09","Virgo",28.8],["2041-10","Libra",2.3],["2041-11","Libra",6.0],["2041-12","Libra",9.2],["2042-01","Libra",11.4],["2042-02","Libra",12.2],["2042-03","Libra",11.4],["2042-04","Libra",9.4],["2042-05","Libra",7.2],["2042-06","Libra",5.7],["2042-07","Libra",5.6],["2042-08","Libra",6.9],["2042-09","Libra",9.6],["2042-10","Libra",12.9],["2042-11","Libra",16.6],["2042-12","Libra",19.9],["2043-01","Libra",22.6],["2043-02","Libra",24.0],["2043-03","Libra",23.8],["2043-04","Libra",22.2],["2043-05","Libra",20.0],["2043-06","Libra",18.1],["2043-07","Libra",17.4],["2043-08","Libra",18.1],["2043-09","Libra",20.3],["2043-10","Libra",23.3],["2043-11","Libra",26.9],["2043-12","Scorpio",0.4],["2044-01","Scorpio",3.4],["2044-02","Scorpio",5.3],["2044-03","Scorpio",5.7],["2044-04","Scorpio",4.6],["2044-05","Scorpio",2.6],["2044-06","Scorpio",0.4],["2044-07","Libra",29.2],["2044-08","Libra",29.4],["2044-09","Scorpio",1.1],["2044-10","Scorpio",3.8],["2044-11","Scorpio",7.3],["2044-12","Scorpio",10.8],["2045-01","Scorpio",14.1],["2045-02","Scorpio",16.4],["2045-03","Scorpio",17.3],["2045-04","Scorpio",16.8],["2045-05","Scorpio",15.0],["2045-06","Scorpio",12.8],["2045-07","Scorpio",11.1],["2045-08","Scorpio",10.7],["2045-09","Scorpio",11.8],["2045-10","Scorpio",14.1],["2045-11","Scorpio",17.4],["2045-12","Scorpio",20.9]],"Rahu":[["2025-01","Pisces",6.5],["2025-02","Pisces",4.9],["2025-03","Pisces",3.4],["2025-04","Pisces",1.8],["2025-05","Pisces",0.2],["2025-06","Aquarius",28.5],["2025-07","Aquarius",26.9],["2025-08","Aquarius",25.3],["2025-09","Aquarius",23.6],["2025-10","Aquarius",22.1],["2025-11","Aquarius",20.4],["2025-12","Aquarius",18.8],["2026-01","Aquarius",17.2],["2026-02","Aquarius",15.5],["2026-03","Aquarius",14.1],["2026-04","Aquarius",12.4],["2026-05","Aquarius",10.8],["2026-06","Aquarius",9.2],["2026-07","Aquarius",7.6],["2026-08","Aquarius",6.0],["2026-09","Aquarius",4.3],["2026-10","Aquarius",2.7],["2026-11","Aquarius",1.1],["2026-12","Capricorn",29.5],["2027-01","Capricorn",27.8],["2027-02","Capricorn",26.2],["2027-03","Capricorn",24.7],["2027-04","Capricorn",23.1],["2027-05","Capricorn",21.5],["2027-06","Capricorn",19.8],["2027-07","Capricorn",18.3],["2027-08","Capricorn",16.6],["2027-09","Capricorn",15.0],["2027-10","Capricorn",13.4],["2027-11","Capricorn",11.7],["2027-12","Capricorn",10.1],["2028-01","Capricorn",8.5],["2028-02","Capricorn",6.9],["2028-03","Capricorn",5.3],["2028-04","Capricorn",3.7],["2028-05","Capricorn",2.1],["2028-06","Capricorn",0.4],["2028-07","Sagittarius",28.9],["2028-08","Sagittarius",27.2],["2028-09","Sagittarius",25.6],["2028-10","Sagittarius",24.0],["2028-11","Sagittarius",22.3],["2028-12","Sagittarius",20.7],["2029-01","Sagittarius",19.1],["2029-02","Sagittarius",17.5],["2029-03","Sagittarius",16.0],["2029-04","Sagittarius",14.3],["2029-05","Sagittarius",12.7],["2029-06","Sagittarius",11.1],["2029-07","Sagittarius",9.5],["2029-08","Sagittarius",7.9],["2029-09","Sagittarius",6.2],["2029-10","Sagittarius",4.6],["2029-11","Sagittarius",3.0],["2029-12","Sagittarius",1.4],["2030-01","Scorpio",29.8],["2030-02","Scorpio",28.1],["2030-03","Scorpio",26.6],["2030-04","Scorpio",25.0],["2030-05","Scorpio",23.4],["2030-06","Scorpio",21.8],["2030-07","Scorpio",20.2],["2030-08","Scorpio",18.5],["2030-09","Scorpio",16.9],["2030-10","Scorpio",15.3],["2030-11","Scorpio",13.7],["2030-12","Scorpio",12.1],["2031-01","Scorpio",10.4],["2031-02","Scorpio",8.8],["2031-03","Scorpio",7.3],["2031-04","Scorpio",5.7],["2031-05","Scorpio",4.1],["2031-06","Scorpio",2.4],["2031-07","Scorpio",0.8],["2031-08","Libra",29.2],["2031-09","Libra",27.5],["2031-10","Libra",26.0],["2031-11","Libra",24.3],["2031-12","Libra",22.7],["2032-01","Libra",21.1],["2032-02","Libra",19.4],["2032-03","Libra",17.9],["2032-04","Libra",16.3],["2032-05","Libra",14.7],["2032-06","Libra",13.0],["2032-07","Libra",11.4],["2032-08","Libra",9.8],["2032-09","Libra",8.1],["2032-10","Libra",6.6],["2032-11","Libra",4.9],["2032-12","Libra",3.3],["2033-01","Libra",1.7],["2033-02","Libra",0.0],["2033-03","Virgo",28.6],["2033-04","Virgo",26.9],["2033-05","Virgo",25.3],["2033-06","Virgo",23.7],["2033-07","Virgo",22.1],["2033-08","Virgo",20.4],["2033-09","Virgo",18.8],["2033-10","Virgo",17.2],["2033-11","Virgo",15.6],["2033-12","Virgo",14.0],["2034-01","Virgo",12.3],["2034-02","Virgo",10.7],["2034-03","Virgo",9.2],["2034-04","Virgo",7.6],["2034-05","Virgo",6.0],["2034-06","Virgo",4.3],["2034-07","Virgo",2.8],["2034-08","Virgo",1.1],["2034-09","Leo",29.5],["2034-10","Leo",27.9],["2034-11","Leo",26.2],["2034-12","Leo",24.6],["2035-01","Leo",23.0],["2035-02","Leo",21.4],["2035-03","Leo",19.9],["2035-04","Leo",18.2],["2035-05","Leo",16.6],["2035-06","Leo",15.0],["2035-07","Leo",13.4],["2035-08","Leo",11.8],["2035-09","Leo",10.1],["2035-10","Leo",8.5],["2035-11","Leo",6.9],["2035-12","Leo",5.3],["2036-01","Leo",3.7],["2036-02","Leo",2.0],["2036-03","Leo",0.5],["2036-04","Cancer",28.8],["2036-05","Cancer",27.2],["2036-06","Cancer",25.6],["2036-07","Cancer",24.0],["2036-08","Cancer",22.4],["2036-09","Cancer",20.7],["2036-10","Cancer",19.1],["2036-11","Cancer",17.5],["2036-12","Cancer",15.9],["2037-01","Cancer",14.3],["2037-02","Cancer",12.6],["2037-03","Cancer",11.1],["2037-04","Cancer",9.5],["2037-05","Cancer",7.9],["2037-06","Cancer",6.3],["2037-07","Cancer",4.7],["2037-08","Cancer",3.0],["2037-09","Cancer",1.4],["2037-10","Gemini",29.8],["2037-11","Gemini",28.2],["2037-12","Gemini",26.6],["2038-01","Gemini",24.9],["2038-02","Gemini",23.3],["2038-03","Gemini",21.8],["2038-04","Gemini",20.2],["2038-05","Gemini",18.6],["2038-06","Gemini",16.9],["2038-07","Gemini",15.3],["2038-08","Gemini",13.7],["2038-09","Gemini",12.0],["2038-10","Gemini",10.5],["2038-11","Gemini",8.8],["2038-12","Gemini",7.2],["2039-01","Gemini",5.6],["2039-02","Gemini",3.9],["2039-03","Gemini",2.5],["2039-04","Gemini",0.8],["2039-05","Taurus",29.2],["2039-06","Taurus",27.6],["2039-07","Taurus",26.0],["2039-08","Taurus",24.3],["2039-09","Taurus",22.7],["2039-10","Taurus",21.1],["2039-11","Taurus",19.5],["2039-12","Taurus",17.9],["2040-01","Taurus",16.2],["2040-02","Taurus",14.6],["2040-03","Taurus",13.1],["2040-04","Taurus",11.4],["2040-05","Taurus",9.8],["2040-06","Taurus",8.2],["2040-07","Taurus",6.6],["2040-08","Taurus",4.9],["2040-09","Taurus",3.3],["2040-10","Taurus",1.7],["2040-11","Taurus",0.1],["2040-12","Aries",28.5],["2041-01","Aries",26.8],["2041-02","Aries",25.2],["2041-03","Aries",23.7],["2041-04","Aries",22.1],["2041-05","Aries",20.5],["2041-06","Aries",18.8],["2041-07","Aries",17.3],["2041-08","Aries",15.6],["2041-09","Aries",14.0],["2041-10","Aries",12.4],["2041-11","Aries",10.7],["2041-12","Aries",9.1],["2042-01","Aries",7.5],["2042-02","Aries",5.9],["2042-03","Aries",4.4],["2042-04","Aries",2.7],["2042-05","Aries",1.1],["2042-06","Pisces",29.5],["2042-07","Pisces",27.9],["2042-08","Pisces",26.3],["2042-09","Pisces",24.6],["2042-10","Pisces",23.0],["2042-11","Pisces",21.4],["2042-12","Pisces",19.8],["2043-01","Pisces",18.2],["2043-02","Pisces",16.5],["2043-03","Pisces",15.0],["2043-04","Pisces",13.4],["2043-05","Pisces",11.8],["2043-06","Pisces",10.2],["2043-07","Pisces",8.6],["2043-08","Pisces",6.9],["2043-09","Pisces",5.3],["2043-10","Pisces",3.7],["2043-11","Pisces",2.0],["2043-12","Pisces",0.5],["2044-01","Aquarius",28.8],["2044-02","Aquarius",27.2],["2044-03","Aquarius",25.6],["2044-04","Aquarius",24.0],["2044-05","Aquarius",22.4],["2044-06","Aquarius",20.8],["2044-07","Aquarius",19.2],["2044-08","Aquarius",17.5],["2044-09","Aquarius",15.9],["2044-10","Aquarius",14.3],["2044-11","Aquarius",12.7],["2044-12","Aquarius",11.1],["2045-01","Aquarius",9.4],["2045-02","Aquarius",7.8],["2045-03","Aquarius",6.3],["2045-04","Aquarius",4.7],["2045-05","Aquarius",3.1],["2045-06","Aquarius",1.4],["2045-07","Capricorn",29.8],["2045-08","Capricorn",28.2],["2045-09","Capricorn",26.5],["2045-10","Capricorn",25.0],["2045-11","Capricorn",23.3],["2045-12","Capricorn",21.7]]}};
+
+/* ---------------- persona ---------------- */
+const PERSONA = `तुम "गुरुजी" हो — पंडित शास्त्री जी — एक 50 वर्ष के परंपरागत वैदिक ज्योतिषी (ज्योतिष शास्त्री), जिन्हें तीस वर्ष से अधिक का अनुभव है, और जो धीरेंद्र बागरी के सच्चे मित्र, मार्गदर्शक और गुरु हैं। तुम गाँव के उस बुज़ुर्ग की तरह बोलते हो जिसने बहुत जीवन देखे हैं — धैर्यवान, गर्मजोश, कभी जल्दबाज़ी में नहीं।
+
+=== तुम कैसे बोलते हो ===
+- भाषा उसी में जवाब दो जिसमें सामने वाला लिखे — Hinglish में लिखे तो Hinglish, देवनागरी हिंदी में लिखे तो हिंदी, English में लिखे तो English। धीरेंद्र के लिए डिफ़ॉल्ट Hinglish है।
+- धीरेंद्र को प्यार से "बेटा" या "भाई" कहकर बुलाओ, गंभीर बात में नाम ले लो।
+- कभी उपदेश नहीं, कभी डराना नहीं। जो शास्त्र में है वही कहो, पर मानवीय भाव से।
+- संस्कृत शब्द आए तो उसका मतलब उसी साँस में समझा दो।
+
+=== तुम हर जवाब में यह क्रम रखते हो ===
+1. पहले उसकी बात/हाल को दो-तीन पंक्तियों में स्वीकार करो — अपनेपन से।
+2. फिर कुंडली का आधार दो: कौन-सा ग्रह, कौन-सा भाव, कौन-सी दशा, कौन-सा नक्षत्र, कौन-सा गोचर — नाम लेकर। जवाब हमेशा नीचे दी गई उसकी असली कुंडली पर टिका हो, सामान्य ज्योतिष पर नहीं।
+3. फिर क्यों — एक उदाहरण, उपमा या छोटी कहानी से समझाओ, जैसे एक शिक्षक समझाता है, जैसे भविष्यवक्ता नहीं।
+4. फिर समय — कौन-सी दशा/अंतर्दशा/गोचर, नीचे दी गई तारीखों के साथ।
+5. फिर उपाय और उसकी प्रासंगिकता — यह उपाय इस ग्रह-स्थिति के लिए क्यों, यह भी बताओ।
+6. अंत में एक पंक्ति प्रोत्साहन या एक व्यावहारिक अगला कदम।
+
+=== वर्तमान समय ===
+- हर बातचीत की शुरुआत में आज की तारीख और समय दिया जाएगा। हमेशा आज की तारीख से गणना करो: वह अभी कौन-सी महादशा/अंतर्दशा में है, और धीमे ग्रह (गुरु, शनि, राहु) अभी कहाँ गोचर कर रहे हैं — नीचे दी गई तालिका से। "वर्तमान काल" मायने रखता है; अतीत जैसे जवाब मत दो।
+
+=== तुम्हारा ज्ञान ===
+- तुम सायन-रहित (Lahiri) स्थितियाँ, पूर्ण-राशि भाव, विंशोत्तरी दशा, नक्षत्र, नवांश और गोचर — सब जानते हो। कारक ग्रह, भावों का अर्थ, योग, और परंपरागत उपाय (मंत्र, दान, व्रत, रुद्राक्ष, रत्न, सेवा) जानते हो।
+- जब ज़रूरत हो, तीनों की कुंडली साथ देखो — धीरेंद्र, पिंकी और राघवेंद्र। परिवार की बात हो तो तीनों।
+
+=== कठोर नियम — कभी न तोड़ो ===
+- कभी मृत्यु, किसी की मृत्यु, गंभीर रोग या विपत्ति की भविष्यवाणी मत करो। कठिन स्थिति हो तो "परीक्षा का समय", "दबाव", "विलंब" कहो — कभी तबाही नहीं।
+- कभी चिकित्सा, कानूनी या आर्थिक निर्देश मत दो। स्वास्थ्य/पैसा/कानून की बात आए तो कुंडली की प्रवृत्ति सामान्य रूप में बताओ और योग्य डॉक्टर / वकील / वित्त सलाहकार से मिलने को कहो।
+- कभी उसे परिवार, बेटे या कर्तव्य छोड़ने को मत कहो। तुम गृहस्थ के मार्गदर्शक हो।
+- भविष्य के बारे में कभी दावा मत करो कि "ऐसा ही होगा"। ज्योतिष प्रवृत्तियों का परंपरागत संकेत है, वचन नहीं। जहाँ ठीक लगे वहाँ यह कहो, पर हर बार दोहराओ मत।
+- अगर वह हताशा या "संभल नहीं पा रहा" जैसी बात कहे — तो असली गर्मजोशी से जवाब दो, उसे कुंडली का मामला मत बनाओ, और कोमलता से कहो कि किसी भरोसेमंद इंसान या counsellor से बात करे। नैदानिक या घबराया हुआ मत लगो।
+- कुंडली के बारे में कुछ मत गढ़ो। जो डेटा में नहीं है, कह दो कि उसकी गणना करनी पड़ेगी।
+- चापलूसी मत करो। सच्चा गुरु सच बोलता है, वही नहीं जो सुनना अच्छा लगे।
+
+=== परिवार की पृष्ठभूमि ===
+- धीरेंद्र, कोटा के एक Govt Polytechnic College में lecturer हैं। शुद्ध शाकाहारी (प्याज़-लहसुन बिना), अलग खाना बनाते हैं। 6 साल के बेटे राघवेंद्र के साथ रहते हैं, जबकि पत्नी पिंकी चावला 2018 से चित्तौड़गढ़ में पोस्टेड हैं। वे संसार से लगाव महसूस नहीं करते, सादा-प्राकृतिक जीवन गायों के साथ चाहते हैं, और एकांतप्रिय हैं — बिना काम की बातचीत उन्हें अच्छी नहीं लगती।
+- उनका मन चंचल है (चंद्र-शनि युति, और चंद्र उनके 8वें भाव का स्वामी)। उपाय में मंत्र, शिव-उपासना और प्राणायाम प्रमुख हैं।
+- पिंकी: चित्तौड़गढ़ से कोटा transfer की प्रतीक्षा। राघवेंद्र: कुंडली में माँ का दूर होना लिखा है (चंद्र 12वें भाव में)।
+
+=== तुम्हारी शैली ===
+- जवाब पूरा, गहरा और व्यावहारिक हो — पर बहुत लंबा नहीं। जहाँ उपयुक्त हो वहाँ छोटी सूची बनाओ, पर मुख्य बातें वाक्यों में कहो।
+- संख्याओं, तारीखों और ग्रह-नामों में सटीक रहो — जो डेटा में है वही।
+- अगर कोई बात डेटा से साफ़ नहीं, तो ईमानदारी से कहो।
+
+नीचे धीरेंद्र और परिवार की पूरी गणना की गई कुंडली, दशाएँ और गोचर-तालिका दी गई है। यही तुम्हारा आधार है।
+
+`;
+
+/* ---------------- providers ---------------- */
+const PROVIDERS = {
+  sarvam: {
+    label:'Sarvam AI',
+    pill:'Sarvam',
+    keyHint:'sk_… (Sarvam dashboard से)',
+    keyUrl:'https://dashboard.sarvam.ai',
+    keyUrlText:'dashboard.sarvam.ai',
+    keyNote:'Sarvam AI की key <b>dashboard.sarvam.ai</b> → "API Keys" section में जाकर बनाइए (sk_… से शुरू होती है)। Key एक ही बार दिखती है, तुरंत save कर लीजिए।',
+    models:[
+      {id:'sarvam-105b', ep:'v1', label:'sarvam-105b (flagship, अनुशंसित)'},
+      {id:'sarvam-105b-conversations', ep:'v1', label:'sarvam-105b-conversations (बातचीत)'},
+      {id:'glm5.3', ep:'v2', label:'glm5.3 (reasoning)'},
+      {id:'gemma4', ep:'v2', label:'gemma4'},
+      {id:'deepseekv4.1-flash', ep:'v2', label:'deepseekv4.1-flash (reasoning, तेज़)'}
+    ]
+  },
+  gemini: {
+    label:'Google Gemini',
+    pill:'Gemini',
+    keyHint:'AIza… (AI Studio से)',
+    keyUrl:'https://aistudio.google.com/app/apikey',
+    keyUrlText:'aistudio.google.com/app/apikey',
+    keyNote:'Gemini की key <b>aistudio.google.com/app/apikey</b> → "Create API key" से बनाइए। ध्यान दीजिए: <b>Gemini app का subscription और API अलग हैं</b> — subscription से key नहीं मिलती।',
+    models:[
+      {id:'gemini-3.8-flash', ep:'gem', label:'gemini-3.8-flash (नवीनतम)'},
+      {id:'gemini-3.6-flash', ep:'gem', label:'gemini-3.6-flash'},
+      {id:'gemini-3.1-flash-lite', ep:'gem', label:'gemini-3.1-flash-lite (तेज़)'},
+      {id:'gemini-3.1-pro-preview', ep:'gem', label:'gemini-3.1-pro-preview (गहरा)'},
+      {id:'gemini-2.5-flash', ep:'gem', label:'gemini-2.5-flash (legacy)'}
+    ]
+  }
+};
+
+/* ---------------- helpers ---------------- */
+const $ = s => document.querySelector(s);
+function dataBlock(){
+  const p = $('#personSel').value;
+  const c = DATA.people[p];
+  let s = "=== आज की तारीख और समय ===\n" + new Date().toLocaleString('en-IN',{dateStyle:'full',timeStyle:'short'}) + " (IST)\n\n";
+  s += "=== जिसकी कुंडली पर अभी बात हो रही है: " + p + " ===\n";
+  s += "जन्म: " + c.birth + " | स्थान: " + c.place + "\n";
+  s += "लग्न: " + c.lagna.sign + " (" + c.lagna.sign_sanskrit + ") " + c.lagna.degree +
+       ", स्वामी " + c.lagna.lord + ", नक्षत्र " + c.lagna.nakshatra + " पद " + c.lagna.pada + "\n";
+  s += "चंद्र नक्षत्र: " + c.moon_nakshatra + " (स्वामी " + c.moon_nak_lord + ")\n";
+  s += "ग्रह-स्थिति (राशि, अंश, भाव, नक्षत्र):\n";
+  c.planets.forEach(pl=>{ s += "  " + pl.planet + ": " + pl.sign + " " + pl.degree + " | भाव " + pl.house +
+      " | " + pl.nakshatra + " पद " + pl.pada + " (स्वामी " + pl.nak_lord + ")\n"; });
+  s += "नवांश (D9): लग्न " + c.navamsa_lagna + " | " +
+       Object.entries(c.navamsa).map(([k,v])=>k+"="+v).join(", ") + "\n";
+  s += "महत्वपूर्ण बातें:\n"; c.notes.forEach(n=>{ s += "  - " + n + "\n"; });
+  s += "\n=== विंशोत्तरी दशा (महादशा → अंतर्दशा) ===\n";
+  c.dasha.forEach(md=>{
+    s += md.lord + " महादशा: " + md.from + " → " + md.to + "\n";
+    md.ads.forEach(a=>{ s += "    " + a.lord + ": " + a.from + " → " + a.to + "\n"; });
+  });
+  return s;
+}
+function transitBlock(){
+  const t = DATA.transits;
+  let s = "\n=== गोचर (सायन-रहित राशि, हर महीने की 15 तारीख) ===\n";
+  ["Jupiter","Saturn","Rahu"].forEach(pl=>{
+    s += pl + " (" + (pl==="Jupiter"?"गुरु":pl==="Saturn"?"शनि":"राहु") + "): ";
+    const rows = t[pl]; let out=[], start=rows[0][0], cur=rows[0][1];
+    for(let i=1;i<rows.length;i++){ if(rows[i][1]!==cur){ out.push(cur+" "+start+"→"+rows[i-1][0]); start=rows[i][0]; cur=rows[i][1]; } }
+    out.push(cur+" "+start+"→"+rows[rows.length-1][0]);
+    s += out.join(" | ") + "\n";
+  });
+  return s;
+}
+function systemPrompt(){ return PERSONA + dataBlock() + transitBlock(); }
+
+/* ---------------- markdown-lite ---------------- */
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function fmt(txt){
+  let h = esc(txt);
+  h = h.replace(/^\s*###?\s*(.+)$/gm,'<span class="h">$1</span>');
+  h = h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  h = h.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>');
+  h = h.replace(/^\s*[-•]\s+(.+)$/gm,'<span class="li">• $1</span>');
+  return h;
+}
+
+/* ---------------- state ---------------- */
+let state = {
+  provider: localStorage.getItem('jg_provider')||'sarvam',
+  keys: { sarvam: localStorage.getItem('jg_key_sarvam')||'', gemini: localStorage.getItem('jg_key_gemini')||'' },
+  models: { sarvam: localStorage.getItem('jg_model_sarvam')||'sarvam-105b',
+            gemini: localStorage.getItem('jg_model_gemini')||'gemini-3.8-flash' },
+  person: localStorage.getItem('jg_person')||'Dhirendra Bagri',
+  hist: JSON.parse(localStorage.getItem('jg_hist')||'{}')
+};
+const key = () => state.keys[state.provider];
+const model = () => state.models[state.provider];
+function saveHist(){ localStorage.setItem('jg_hist', JSON.stringify(state.hist)); }
+function hist(){ if(!state.hist[state.person]) state.hist[state.person]=[]; return state.hist[state.person]; }
+function epOf(prov, id){ const p=PROVIDERS[prov]; const m=p.models.find(x=>x.id===id); return m?m.ep:(prov==='sarvam'?'v1':'gem'); }
+
+/* ---------------- render ---------------- */
+function bubble(role, text){
+  const d=document.createElement('div');
+  d.className='msg '+(role==='user'?'user':'guru');
+  d.innerHTML='<div class="who">'+(role==='user'?'आप':'गुरुजी')+'</div><div class="bubble">'+fmt(text)+'</div>';
+  $('#log').appendChild(d); $('#log').scrollTop=$('#log').scrollHeight; return d;
+}
+function renderAll(){
+  $('#log').innerHTML='';
+  const sys=document.createElement('div');
+  sys.className='sys';
+  sys.innerHTML='<div class="box">🙏 नमस्ते बेटा। मैं गुरुजी हूँ।<br>'+
+    '<span style="font-size:12px">अभी पढ़ रहा हूँ: <b>'+state.person+'</b> की कुंडली। कुछ भी पूछिए — मन, साधना, transfer, परिवार, या आगे का समय।</span></div>';
+  $('#log').appendChild(sys);
+  hist().forEach(m=>bubble(m.role==='user'?'user':'guru', m.text));
+}
+
+/* ---------------- API: Sarvam ---------------- */
+async function callSarvam(contents, onDelta){
+  const id = model(), ep = epOf('sarvam', id);
+  const url = 'https://api.sarvam.ai/'+ep+'/chat/completions';
+  const msgs = [{role:'system', content: systemPrompt()}]
+    .concat(contents.map(m=>({role: m.role==='user'?'user':'assistant', content: m.text})));
+  const body = { model:id, messages:msgs, temperature:0.75, max_tokens:3200, stream:true };
+  if(ep==='v2' && (id==='glm5.3'||id==='deepseekv4.1-flash')) body.reasoning_effort='low';
+  const res = await fetch(url,{method:'POST',
+    headers:{'Content-Type':'application/json','api-subscription-key':key()},
+    body:JSON.stringify(body)});
+  if(!res.ok){
+    let msg='Sarvam API error '+res.status;
+    try{ const j=await res.json(); if(j.error&&j.error.message) msg+=' — '+j.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const reader=res.body.getReader(), dec=new TextDecoder(); let buf='', full='';
+  while(true){
+    const {done,value}=await reader.read(); if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n'); buf=lines.pop();
+    for(const line of lines){
+      const t=line.trim(); if(!t.startsWith('data:'))continue;
+      const payload=t.slice(5).trim(); if(!payload||payload==='[DONE]')continue;
+      try{
+        const o=JSON.parse(payload);
+        const ch=o.choices&&o.choices[0];
+        const piece=(ch&&((ch.delta&&ch.delta.content)||(ch.message&&ch.message.content)))||'';
+        if(piece){ full+=piece; onDelta(full); }
+      }catch(e){}
+    }
+  }
+  if(!full) throw new Error('खाली जवाब आया — model name या quota जाँच लीजिए।');
+  return full;
+}
+
+/* ---------------- API: Gemini ---------------- */
+async function callGemini(contents, onDelta){
+  const id = model();
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(id)+
+            ':streamGenerateContent?alt=sse&key='+encodeURIComponent(key());
+  const body={ systemInstruction:{parts:[{text:systemPrompt()}]},
+    contents: contents.map(m=>({role:m.role==='user'?'user':'model', parts:[{text:m.text}]})),
+    generationConfig:{temperature:0.85, maxOutputTokens:3200, topP:0.95} };
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){
+    let msg='Gemini API error '+res.status;
+    try{ const j=await res.json(); if(j.error&&j.error.message) msg+=' — '+j.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const reader=res.body.getReader(), dec=new TextDecoder(); let buf='', full='';
+  while(true){
+    const {done,value}=await reader.read(); if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n'); buf=lines.pop();
+    for(const line of lines){
+      const t=line.trim(); if(!t.startsWith('data:'))continue;
+      const payload=t.slice(5).trim(); if(!payload||payload==='[DONE]')continue;
+      try{
+        const o=JSON.parse(payload);
+        const parts=(o.candidates&&o.candidates[0]&&o.candidates[0].content&&o.candidates[0].content.parts)||[];
+        const piece=parts.map(p=>p.text||'').join('');
+        if(piece){ full+=piece; onDelta(full); }
+      }catch(e){}
+    }
+  }
+  if(!full) throw new Error('खाली जवाब आया — model name या quota जाँच लीजिए।');
+  return full;
+}
+function callAI(contents,onDelta){ return state.provider==='sarvam' ? callSarvam(contents,onDelta) : callGemini(contents,onDelta); }
+
+/* ---------------- model list refresh ---------------- */
+async function refreshModels(){
+  const st=$('#modelStatus'); st.className='status'; st.textContent='लाया जा रहा है…';
+  try{
+    let ids=[];
+    if(state.provider==='sarvam'){
+      const r=await fetch('https://api.sarvam.ai/v2/models',{headers:{'api-subscription-key':key()}});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const j=await r.json(); ids=(j.data||[]).map(m=>m.id);
+    }else{
+      const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key()));
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const j=await r.json();
+      ids=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+            .map(m=>m.name.replace(/^models\//,''));
+    }
+    if(!ids.length) throw new Error('कोई model नहीं मिला');
+    const sel=$('#model'); const keep=sel.value;
+    sel.innerHTML='';
+    ids.forEach(id=>{ const o=document.createElement('option'); o.value=id; o.textContent=id; sel.appendChild(o); });
+    if(ids.includes(keep)) sel.value=keep;
+    st.className='status ok'; st.textContent='✓ '+ids.length+' models मिले।';
+  }catch(e){
+    st.className='status'; st.textContent='Models नहीं ला पाया ('+e.message+') — key जाँचिए, या नीचे से चुन लीजिए।';
+  }
+}
+
+/* ---------------- send ---------------- */
+let busy=false;
+async function send(){
+  const q=$('#q').value.trim(); if(!q||busy)return;
+  if(!key()){ openModal(); return; }
+  busy=true; $('#send').disabled=true; $('#q').value=''; autoGrow();
+  hist().push({role:'user',text:q}); bubble('user',q); saveHist();
+  const holder=bubble('guru','');
+  holder.querySelector('.bubble').innerHTML='<span class="thinking">गुरुजी विचार कर रहे हैं…</span>';
+  try{
+    const full = await callAI(hist(), txt=>{
+      holder.querySelector('.bubble').innerHTML=fmt(txt);
+      $('#log').scrollTop=$('#log').scrollHeight;
+    });
+    hist().push({role:'model',text:full}); saveHist();
+  }catch(err){
+    let hint='';
+    const m=String(err.message);
+    if(/403|invalid_api_key/.test(m)) hint='आपकी API key ग़लत है या ख़त्म हो गई — ⚙ सेटिंग में नई key डालिए।';
+    else if(/404|not found|no longer available/i.test(m)) hint='यह model अब उपलब्ध नहीं है — ⚙ सेटिंग में <b>"🔄 Models refresh करें"</b> दबाइए और दूसरा model चुनिए।';
+    else if(/quota|429|rate/i.test(m)) hint='थोड़ी देर रुककर फिर कोशिश कीजिए (quota/rate limit)।';
+    else hint='⚙ सेटिंग में key और model जाँच लीजिए।';
+    holder.querySelector('.bubble').innerHTML='<b>क्षमा कीजिए, कुछ अड़चन आ गई।</b><br><span style="font-size:13px">'+
+      esc(m)+'</span><br><br><span style="font-size:13px">'+hint+'</span>';
+  }finally{ busy=false; $('#send').disabled=false; }
+}
+
+/* ---------------- UI wiring ---------------- */
+function autoGrow(){ const q=$('#q'); q.style.height='auto'; q.style.height=Math.min(q.scrollHeight,170)+'px'; }
+function fillModels(){
+  const sel=$('#model'); sel.innerHTML='';
+  PROVIDERS[state.provider].models.forEach(m=>{
+    const o=document.createElement('option'); o.value=m.id; o.textContent=m.label||m.id; sel.appendChild(o);
+  });
+  const want=state.models[state.provider];
+  if([...sel.options].some(o=>o.value===want)) sel.value=want; else sel.value=sel.options[0].value;
+}
+function syncKeyHelp(){
+  const p=PROVIDERS[state.provider];
+  $('#key').placeholder=p.keyHint;
+  $('#keyHelp').innerHTML='<b>Key कहाँ से लें?</b> '+p.keyNote+
+    ' <a href="'+p.keyUrl+'" target="_blank">'+p.keyUrlText+'</a>';
+  $('#provPill').textContent=p.pill;
+}
+function openModal(){
+  $('#modal').classList.add('open');
+  $('#provider').value=state.provider;
+  $('#key').value=key();
+  fillModels(); syncKeyHelp(); $('#modelStatus').textContent='';
+}
+function closeModal(){ $('#modal').classList.remove('open'); }
+
+$('#send').onclick=send;
+$('#q').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
+$('#q').addEventListener('input',autoGrow);
+$('#setBtn').onclick=openModal;
+$('#closeSet').onclick=closeModal;
+$('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+$('#provider').onchange=()=>{ $('#key').value=state.keys[$('#provider').value]||''; fillModels(); syncKeyHelp(); };
+$('#refreshModels').onclick=async()=>{
+  state.provider=$('#provider').value;
+  state.keys[state.provider]=$('#key').value.trim();
+  await refreshModels();
+};
+$('#saveSet').onclick=()=>{
+  state.provider=$('#provider').value;
+  state.keys[state.provider]=$('#key').value.trim();
+  state.models[state.provider]=$('#model').value;
+  localStorage.setItem('jg_provider',state.provider);
+  localStorage.setItem('jg_key_'+state.provider,state.keys[state.provider]);
+  localStorage.setItem('jg_model_'+state.provider,state.models[state.provider]);
+  syncKeyHelp(); closeModal();
+  if(!key()) openModal();
+};
+$('#personSel').onchange=()=>{ state.person=$('#personSel').value; localStorage.setItem('jg_person',state.person); renderAll(); };
+$('#clearBtn').onclick=()=>{ if(confirm('इस कुंडली की बातचीत मिटा दें?')){ state.hist[state.person]=[]; saveHist(); renderAll(); } };
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#q').value=c.textContent; autoGrow(); $('#q').focus(); });
+
+/* ---------------- init ---------------- */
+$('#personSel').value=state.person;
+$('#todayLabel').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+$('#provPill').textContent=PROVIDERS[state.provider].pill;
+renderAll();
+if(!key()) setTimeout(openModal,400);
+</script>
+</body>
+</html>
